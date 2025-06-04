@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import {
   Box,
@@ -25,7 +25,7 @@ const MainLayout = () => {
   const bgColor = useColorModeValue("gray.50", "gray.900");
   
   // Responsive values
-  const isMobile = useBreakpointValue({ base: true, md: false });
+
   const headerPadding = useBreakpointValue({ base: 4, md: 6 });
   const containerPadding = useBreakpointValue({ base: 4, md: 6 });
   const headingSize = useBreakpointValue({ base: "md", md: "lg" });

@@ -19,7 +19,6 @@ import {
   DrawerContent,
   DrawerCloseButton,
   useDisclosure,
-  useBreakpointValue,
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";

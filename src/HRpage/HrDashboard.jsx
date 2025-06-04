@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Flex,
@@ -7,17 +7,10 @@ import {
   VStack,
   HStack,
   Icon,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
   useColorModeValue,
   Container,
-  Spacer,
   Progress,
-  SimpleGrid,
-  Divider
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 import {
   FiUsers,
   FiUserPlus,
@@ -25,9 +18,7 @@ import {
   FiBell,
   FiTrendingUp,
   FiTrendingDown,
-  FiAward,
-  FiTarget
-} from 'react-icons/fi';
+} from "react-icons/fi";
 import {
   LineChart,
   Line,
@@ -43,10 +34,18 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";
 
-const StatCard = ({ title, number, subtitle, icon, iconColor, hoverColor, trend }) => {
+const StatCard = ({
+  title,
+  number,
+  subtitle,
+  icon,
+  iconColor,
+  hoverColor,
+  trend,
+}) => {
   return (
     <Box
       bg="white"
@@ -57,9 +56,10 @@ const StatCard = ({ title, number, subtitle, icon, iconColor, hoverColor, trend 
       borderColor="gray.100"
       transition="all 0.2s"
       _hover={{
-        transform: 'translateY(-2px)',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        borderColor: hoverColor
+        transform: "translateY(-2px)",
+        boxShadow:
+          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        borderColor: hoverColor,
       }}
       cursor="pointer"
     >
@@ -72,21 +72,18 @@ const StatCard = ({ title, number, subtitle, icon, iconColor, hoverColor, trend 
             {number}
           </Text>
           <HStack spacing={2}>
-            <Icon 
-              as={trend > 0 ? FiTrendingUp : FiTrendingDown} 
-              color={trend > 0 ? "green.500" : "red.500"} 
-              w={4} h={4} 
+            <Icon
+              as={trend > 0 ? FiTrendingUp : FiTrendingDown}
+              color={trend > 0 ? "green.500" : "red.500"}
+              w={4}
+              h={4}
             />
             <Text fontSize="xs" color={trend > 0 ? "green.500" : "red.500"}>
               {Math.abs(trend)}% {subtitle}
             </Text>
           </HStack>
         </VStack>
-        <Box
-          p={3}
-          borderRadius="lg"
-          bg={`${iconColor}.50`}
-        >
+        <Box p={3} borderRadius="lg" bg={`${iconColor}.50`}>
           <Icon as={icon} w={6} h={6} color={`${iconColor}.500`} />
         </Box>
       </Flex>
@@ -107,47 +104,45 @@ const ChartCard = ({ title, children, height = "300px" }) => {
       <Text fontSize="lg" fontWeight="semibold" color="gray.800" mb={4}>
         {title}
       </Text>
-      <Box height={height}>
-        {children}
-      </Box>
+      <Box height={height}>{children}</Box>
     </Box>
   );
 };
 
 export default function HrDashboard() {
-  const bgColor = useColorModeValue('#F7FAFC', 'gray.800');
+  const bgColor = useColorModeValue("#F7FAFC", "gray.800");
 
   // Sample data for charts
   const employeeGrowthData = [
-    { month: 'Jan', employees: 180, hires: 12 },
-    { month: 'Feb', employees: 195, hires: 15 },
-    { month: 'Mar', employees: 210, hires: 18 },
-    { month: 'Apr', employees: 225, hires: 20 },
-    { month: 'May', employees: 247, hires: 23 },
+    { month: "Jan", employees: 180, hires: 12 },
+    { month: "Feb", employees: 195, hires: 15 },
+    { month: "Mar", employees: 210, hires: 18 },
+    { month: "Apr", employees: 225, hires: 20 },
+    { month: "May", employees: 247, hires: 23 },
   ];
 
   const departmentData = [
-    { name: 'Engineering', value: 85, color: '#3182CE' },
-    { name: 'Sales', value: 52, color: '#38A169' },
-    { name: 'Marketing', value: 34, color: '#805AD5' },
-    { name: 'HR', value: 28, color: '#DD6B20' },
-    { name: 'Finance', value: 24, color: '#E53E3E' },
-    { name: 'Operations', value: 24, color: '#00B5D8' },
+    { name: "Engineering", value: 85, color: "#3182CE" },
+    { name: "Sales", value: 52, color: "#38A169" },
+    { name: "Marketing", value: 34, color: "#805AD5" },
+    { name: "HR", value: 28, color: "#DD6B20" },
+    { name: "Finance", value: 24, color: "#E53E3E" },
+    { name: "Operations", value: 24, color: "#00B5D8" },
   ];
 
   const leaveData = [
-    { month: 'Jan', approved: 45, pending: 8, rejected: 3 },
-    { month: 'Feb', approved: 52, pending: 12, rejected: 5 },
-    { month: 'Mar', approved: 38, pending: 6, rejected: 2 },
-    { month: 'Apr', approved: 65, pending: 15, rejected: 4 },
-    { month: 'May', approved: 48, pending: 18, rejected: 6 },
+    { month: "Jan", approved: 45, pending: 8, rejected: 3 },
+    { month: "Feb", approved: 52, pending: 12, rejected: 5 },
+    { month: "Mar", approved: 38, pending: 6, rejected: 2 },
+    { month: "Apr", approved: 65, pending: 15, rejected: 4 },
+    { month: "May", approved: 48, pending: 18, rejected: 6 },
   ];
 
   const performanceData = [
-    { metric: 'Employee Satisfaction', score: 88 },
-    { metric: 'Retention Rate', score: 94 },
-    { metric: 'Training Completion', score: 76 },
-    { metric: 'Goal Achievement', score: 82 },
+    { metric: "Employee Satisfaction", score: 88 },
+    { metric: "Retention Rate", score: 94 },
+    { metric: "Training Completion", score: 76 },
+    { metric: "Goal Achievement", score: 82 },
   ];
 
   return (
@@ -187,7 +182,7 @@ export default function HrDashboard() {
               templateColumns={{
                 base: "1fr",
                 sm: "repeat(2, 1fr)",
-                lg: "repeat(4, 1fr)"
+                lg: "repeat(4, 1fr)",
               }}
               gap={6}
             >
@@ -233,7 +228,7 @@ export default function HrDashboard() {
             <Grid
               templateColumns={{
                 base: "1fr",
-                lg: "2fr 1fr"
+                lg: "2fr 1fr",
               }}
               gap={6}
             >
@@ -243,25 +238,25 @@ export default function HrDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                     <XAxis dataKey="month" stroke="#A0AEC0" />
                     <YAxis stroke="#A0AEC0" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '8px'
-                      }} 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "8px",
+                      }}
                     />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="employees" 
-                      stroke="#3182CE" 
+                    <Line
+                      type="monotone"
+                      dataKey="employees"
+                      stroke="#3182CE"
                       strokeWidth={3}
                       name="Total Employees"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="hires" 
-                      stroke="#38A169" 
+                    <Line
+                      type="monotone"
+                      dataKey="hires"
+                      stroke="#38A169"
                       strokeWidth={3}
                       name="New Hires"
                     />
@@ -296,7 +291,7 @@ export default function HrDashboard() {
             <Grid
               templateColumns={{
                 base: "1fr",
-                lg: "1fr 1fr"
+                lg: "1fr 1fr",
               }}
               gap={6}
             >
@@ -306,12 +301,12 @@ export default function HrDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                     <XAxis dataKey="month" stroke="#A0AEC0" />
                     <YAxis stroke="#A0AEC0" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '8px'
-                      }} 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "8px",
+                      }}
                     />
                     <Legend />
                     <Bar dataKey="approved" fill="#38A169" name="Approved" />
@@ -326,7 +321,11 @@ export default function HrDashboard() {
                   {performanceData.map((item, index) => (
                     <Box key={index}>
                       <Flex justify="space-between" mb={2}>
-                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                        <Text
+                          fontSize="sm"
+                          fontWeight="medium"
+                          color="gray.700"
+                        >
                           {item.metric}
                         </Text>
                         <Text fontSize="sm" fontWeight="bold" color="gray.800">
@@ -336,9 +335,13 @@ export default function HrDashboard() {
                       <Progress
                         value={item.score}
                         colorScheme={
-                          item.score >= 90 ? "green" :
-                          item.score >= 80 ? "blue" :
-                          item.score >= 70 ? "yellow" : "red"
+                          item.score >= 90
+                            ? "green"
+                            : item.score >= 80
+                            ? "blue"
+                            : item.score >= 70
+                            ? "yellow"
+                            : "red"
                         }
                         size="md"
                         borderRadius="full"
@@ -354,24 +357,30 @@ export default function HrDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={employeeGrowthData}>
                   <defs>
-                    <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3182CE" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3182CE" stopOpacity={0}/>
+                    <linearGradient
+                      id="colorEmployees"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#3182CE" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3182CE" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorHires" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#38A169" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#38A169" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#38A169" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#38A169" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                   <XAxis dataKey="month" stroke="#A0AEC0" />
                   <YAxis stroke="#A0AEC0" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '8px'
-                    }} 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: "8px",
+                    }}
                   />
                   <Area
                     type="monotone"

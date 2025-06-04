@@ -5,7 +5,6 @@ import {
   Heading,
   Grid,
   VStack,
-  HStack,
   FormControl,
   FormLabel,
   Input,
@@ -127,7 +126,6 @@ const CalculateSalary = () => {
         item.year === Number(yearseris)
     );
   }, [getAllSalaries, selectedEmployee, montheris, yearseris]);
-console.log("getsalary",getsalary)
   const handleSelect = (e) => {
     setSelectedEmployee(e.target.value);
     setIncomeItems({

@@ -81,7 +81,7 @@ const ListTableEmlyee = () => {
   const handleEdit = (employeeId) => {
     navigate(`/hr/edit/${employeeId}`);
   };
-
+  console.log(status);
   const handleBlockActive = (item, isActive) => {
     setStatus(isActive);
     dispatch(
@@ -125,6 +125,7 @@ const ListTableEmlyee = () => {
     if (successMessage) {
       toast.success(successMessage);
       dispatch(messageClear());
+      setTotalPages();
     }
     if (errorMessage) {
       toast.error(errorMessage);

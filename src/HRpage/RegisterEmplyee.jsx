@@ -229,32 +229,32 @@ const RegisterEmployee = () => {
   };
 
   // Add new social security entry
-  const handleAddSocialSecurity = () => {
-    setSocialSecurity([
-      ...socialSecurity,
-      {
-        type: "",
-        accountNumber: "",
-        registrationPlace: "",
-        registrationDate: "",
-      },
-    ]);
-  };
+  // const handleAddSocialSecurity = () => {
+  //   setSocialSecurity([
+  //     ...socialSecurity,
+  //     {
+  //       type: "",
+  //       accountNumber: "",
+  //       registrationPlace: "",
+  //       registrationDate: "",
+  //     },
+  //   ]);
+  // };
 
-  // Remove social security entry
-  const handleRemoveSocialSecurity = (index) => {
-    if (socialSecurity.length > 1) {
-      setSocialSecurity(socialSecurity.filter((_, i) => i !== index));
-    } else {
-      toast({
-        title: "ບໍ່ສາມາດລຶບໄດ້",
-        description: "ຕ້ອງມີຢ່າງໜ້ອຍໜຶ່ງລາຍການ",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
+  // // Remove social security entry
+  // const handleRemoveSocialSecurity = (index) => {
+  //   if (socialSecurity.length > 1) {
+  //     setSocialSecurity(socialSecurity.filter((_, i) => i !== index));
+  //   } else {
+  //     toast({
+  //       title: "ບໍ່ສາມາດລຶບໄດ້",
+  //       description: "ຕ້ອງມີຢ່າງໜ້ອຍໜຶ່ງລາຍການ",
+  //       status: "warning",
+  //       duration: 3000,
+  //       isClosable: true,
+  //     });
+  //   }
+  // };
 
   // Add new education entry
   const handleAddEducation = () => {

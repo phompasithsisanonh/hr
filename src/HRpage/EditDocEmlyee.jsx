@@ -55,7 +55,6 @@ const EditDocEmlyee = () => {
     successMessage,
     errorMessage,
     //drop
-    getDepartmentries,
   } = useSelector((state) => state.information);
   const get = getdatabase[0];
   const navigate = useNavigate();

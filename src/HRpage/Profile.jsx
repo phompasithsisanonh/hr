@@ -383,6 +383,7 @@ const ProfileUI = () => {
         position: "top",
       });
       dispatch(messageClear());
+      setNotices('')
     }
 
     if (errorMessage) {

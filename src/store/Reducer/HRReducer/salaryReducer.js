@@ -1,7 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../../API/api";
-import { min } from "moment";
-
 ///addfileInOutWork
 export const addfileInOutWork = createAsyncThunk(
   "salary/addfileInOutWork",

@@ -22,7 +22,6 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Divider,
   Tooltip,
   Modal,
   ModalOverlay,
@@ -34,7 +33,6 @@ import {
   useDisclosure,
   InputGroup,
   InputLeftAddon,
-  Skeleton,
   Alert,
   AlertIcon,
   AlertTitle,
@@ -57,7 +55,7 @@ const TaxIncomeEm = () => {
   const { errorMessage, successMessage, getTaxeis, loader } = useSelector(
     (state) => state.salary
   );
-  const { userInfo } = useSelector((state) => state.auth);
+
   const [selectedBracket, setSelectedBracket] = useState(null);
   const [isNewBracketMode, setIsNewBracketMode] = useState(true);
   const [formError, setFormError] = useState("");
