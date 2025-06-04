@@ -1,18 +1,28 @@
 .App {
   text-align: center;
 }
-
+*{
+  font-family: "Noto Sans Lao", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
-
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
-
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap');
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
