@@ -36,7 +36,7 @@ const RegisterEmployee = () => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const bgColor = useColorModeValue("white", "gray.700");
   const dispatch = useDispatch();
-  const navigate =useNavigate()
+  const navigate = useNavigate();
   const toast = useToast();
   const { getdatabase, loading } = useSelector((state) => state.information);
   const get = getdatabase[0];
@@ -106,9 +106,7 @@ const RegisterEmployee = () => {
     contractFile: null,
     contractFilePreview: null,
   });
-  const filterPosition = get?.department?.find(
-    (i) => i._id === department._id
-  );
+  const filterPosition = get?.department?.find((i) => i._id === department._id);
   // State for salary and benefits
   const [salaryInfo, setSalaryInfo] = useState({
     baseSalary: "",
@@ -284,7 +282,7 @@ const RegisterEmployee = () => {
       certificatePreview: null,
     });
   };
- const handlePositon = useCallback(
+  const handlePositon = useCallback(
     (e) => {
       const { name, value } = e.target;
       if (name === "position") {
@@ -361,10 +359,10 @@ const RegisterEmployee = () => {
     });
     //
     Object.entries(department).forEach(([key, value]) =>
-        formData.append(`department[${key}]`, department[key])
+      formData.append(`department[${key}]`, department[key])
     );
-     Object.entries(position).forEach(([key, value]) =>
-        formData.append(`position[${key}]`, position[key])
+    Object.entries(position).forEach(([key, value]) =>
+      formData.append(`position[${key}]`, position[key])
     );
     //
     // Add education history
@@ -450,7 +448,7 @@ const RegisterEmployee = () => {
           duration: 5000,
           isClosable: true,
         });
-        navigate('/')
+        navigate("/");
         //     // Reset form - implemented in the actual function
       })
       .catch((err) => {
@@ -462,8 +460,6 @@ const RegisterEmployee = () => {
           isClosable: true,
         });
       });
-
-
   };
 
   useEffect(() => {
@@ -689,7 +685,11 @@ const RegisterEmployee = () => {
               ຂໍ້ມູນເອກະສານປະຈຳໂຕ/ພາສປອດ
             </Heading>
             <Grid
-              templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }}
+              templateColumns={{
+                base: "1fr",
+                sm: "repeat(2, 1fr)",
+                lg: "repeat(4, 1fr)",
+              }}
               gap={6}
             >
               <GridItem>
@@ -739,7 +739,7 @@ const RegisterEmployee = () => {
                   />
                 </FormControl>
               </GridItem>
-              <GridItem colSpan={4}>
+              <GridItem colSpan={{ base: 1, sm: 2, lg: 4 }}>
                 <FormControl>
                   <FormLabel>ເພີ່ມຮູບພາບ</FormLabel>
                   {imagePreviews.idCardImage && (
@@ -1109,7 +1109,7 @@ const RegisterEmployee = () => {
                   <FormLabel>ພະແນກ</FormLabel>
                   <Select
                     name="department"
-                     value={department?.type}
+                    value={department?.type}
                     onChange={handleDepartmentAndPositionChange}
                     placeholder="-- ເລືອກ --"
                   >
@@ -1125,7 +1125,7 @@ const RegisterEmployee = () => {
                 <FormControl isRequired>
                   <FormLabel>ຕຳແໜ່ງ</FormLabel>
                   <Select
-                     name="position"
+                    name="position"
                     value={position.type}
                     onChange={handlePositon}
                     placeholder="ຕຳແໜ່ງ"
@@ -1345,76 +1345,84 @@ const RegisterEmployee = () => {
               ປະກັນສັງຄົມ
             </Heading>
             {socialSecurity.length > 0 ? (
-              <Table variant="simple" size="sm">
-                <Thead>
-                  <Tr>
-                    <Th fontFamily="Noto Sans Lao, serif">ປະເພດປະກັນສັງຄົມ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ອັດຕາຫັກປະກັນ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ສະຖານທີ່ລົງທະບຽນ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ວັນລົງທະບຽນ</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {socialSecurity.map((security, index) => (
-                    <Tr key={index}>
-                      <Td>
-                        <Select
-                          value={security.type || ""}
-                          onChange={(e) =>
-                            handleSocialSecurityChange(
-                              index,
-                              "type",
-                              e.target.value
-                            )
-                          }
-                          placeholder="-- ເລືອກ --"
-                        >
-                          <option value={security.type}>{security.type}</option>
-                        </Select>
-                      </Td>
-                      <Td>
-                        <Input
-                          value={security.rate || ""}
-                          onChange={(e) =>
-                            handleSocialSecurityChange(
-                              index,
-                              "rate",
-                              e.target.value
-                            )
-                          }
-                          placeholder="ອັດຕາຫັກ %"
-                        />
-                      </Td>
-                      <Td>
-                        <Input
-                          value={security.registrationPlace || ""}
-                          onChange={(e) =>
-                            handleSocialSecurityChange(
-                              index,
-                              "registrationPlace",
-                              e.target.value
-                            )
-                          }
-                          placeholder="ສະຖານທີ່ລົງທະບຽນ"
-                        />
-                      </Td>
-                      <Td>
-                        <Input
-                          type="date"
-                          value={security.registrationDate || ""}
-                          onChange={(e) =>
-                            handleSocialSecurityChange(
-                              index,
-                              "registrationDate",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </Td>
+              <Box overflowX="auto">
+                <Table variant="simple" size="sm" minW="800px">
+                  <Thead>
+                    <Tr>
+                      <Th fontFamily="Noto Sans Lao, serif">
+                        ປະເພດປະກັນສັງຄົມ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif">ອັດຕາຫັກປະກັນ</Th>
+                      <Th fontFamily="Noto Sans Lao, serif">
+                        ສະຖານທີ່ລົງທະບຽນ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif">ວັນລົງທະບຽນ</Th>
                     </Tr>
-                  ))}
-                </Tbody>
-              </Table>
+                  </Thead>
+                  <Tbody>
+                    {socialSecurity.map((security, index) => (
+                      <Tr key={index}>
+                        <Td>
+                          <Select
+                            value={security.type || ""}
+                            onChange={(e) =>
+                              handleSocialSecurityChange(
+                                index,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                            placeholder="-- ເລືອກ --"
+                          >
+                            <option value={security.type}>
+                              {security.type}
+                            </option>
+                          </Select>
+                        </Td>
+                        <Td>
+                          <Input
+                            value={security.rate || ""}
+                            onChange={(e) =>
+                              handleSocialSecurityChange(
+                                index,
+                                "rate",
+                                e.target.value
+                              )
+                            }
+                            placeholder="ອັດຕາຫັກ %"
+                          />
+                        </Td>
+                        <Td>
+                          <Input
+                            value={security.registrationPlace || ""}
+                            onChange={(e) =>
+                              handleSocialSecurityChange(
+                                index,
+                                "registrationPlace",
+                                e.target.value
+                              )
+                            }
+                            placeholder="ສະຖານທີ່ລົງທະບຽນ"
+                          />
+                        </Td>
+                        <Td>
+                          <Input
+                            type="date"
+                            value={security.registrationDate || ""}
+                            onChange={(e) =>
+                              handleSocialSecurityChange(
+                                index,
+                                "registrationDate",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
             ) : (
               <Text color="gray.500">ບໍ່ມີຂໍ້ມູນປະກັນສັງຄົມ</Text>
             )}

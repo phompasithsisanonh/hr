@@ -75,7 +75,7 @@ export const addDataSalary = createAsyncThunk(
   "salary/addDataSalary",
   async (item, { rejectWithValue, fulfillWithValue }) => {
     try {
-      console.log(item)
+      console.log(item);
       const { data } = await api.post(
         `/informationEmplyee/addDataAlreadySalary`,
         {
@@ -93,7 +93,7 @@ export const addDataSalary = createAsyncThunk(
           socialSecurity: item.socialSecurity,
           personalInfo: item.personalInfo,
           otId: item.id,
-          bennifits:item?.bennifits
+          bennifits: item?.bennifits,
         },
         {
           withCredentials: true,
@@ -224,22 +224,25 @@ export const postsalary = createAsyncThunk(
       const { data } = await api.post(
         `/informationEmplyee/receiptsalary`,
         {
-          employeeCode: salaryData.employeeCode,
-          personalInfo: salaryData.personalInfo,
-          date: salaryData.date,
-          basicSalary: salaryData.basicSalary,
-          salaryFirst: salaryData.salaryFirst,
-          socialSecurity: salaryData.socialSecurity,
-          socialSecurityMoney: salaryData.socialSecurityMoney,
-          tax: salaryData.tax,
-          netExpense: salaryData.netExpense,
-          netIncome: salaryData.netIncome,
-          netSalary: salaryData.netSalary,
-          incomeItems: salaryData.incomeItems,
-          expenseItems: salaryData.expenseItems,
-          taxBracket: salaryData.taxBracket,
-          year: salaryData.year,
-          month: salaryData.month,
+          employeeCode: salaryData?.employeeCode,
+          personalInfo: salaryData?.personalInfo,
+          date: salaryData?.date,
+          basicSalary: salaryData?.basicSalary,
+          salaryFirst: salaryData?.salaryFirst,
+          socialSecurity: salaryData?.socialSecurity,
+          socialSecurityMoney: salaryData?.socialSecurityMoney,
+          tax: salaryData?.tax,
+          netExpense: salaryData?.netExpense,
+          netIncome: salaryData?.netIncome,
+          netSalary: salaryData?.netSalary,
+          incomeItems: salaryData?.incomeItems,
+          expenseItems: salaryData?.expenseItems,
+          taxBracket: salaryData?.taxBracket,
+          year: salaryData?.year,
+          month: salaryData?.month,
+          NetBennifits: salaryData?.NetBennifits,
+          totalTimeLate: salaryData?.totalTimeLate,
+          totalTimeOt: salaryData?.totalTimeOt,
         },
         {
           withCredentials: true,
@@ -292,15 +295,7 @@ export const CancelCardSummary = createAsyncThunk(
 export const addFormDataEdit = createAsyncThunk(
   "salary/addFormDataEdit",
   async (
-    {
-      id,
-      emplyeebarCode,
-      fullName,
-      filtercheckIdcode,
-     date,
-      inTime,
-      outTime,
-    },
+    { id, emplyeebarCode, fullName, filtercheckIdcode, date, inTime, outTime },
     { rejectWithValue, fulfillWithValue }
   ) => {
     try {

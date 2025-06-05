@@ -55,6 +55,7 @@ import {
   editProfile,
   get_user_info,
   getPostNotice,
+  logout,
   messageClear,
   postNotice,
 } from "../store/Reducer/Auth/auth";
@@ -112,9 +113,8 @@ const ProfileUI = () => {
     loader,
     errorMessage,
     successMessage,
-    
   } = useSelector((state) => state.auth);
-  
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [formData, setFormData] = useState({
     name: "",
@@ -376,6 +376,10 @@ const ProfileUI = () => {
       <Image src={proxyUrl} alt="preview" maxW="300px" />
     );
   }
+  const handlelogout = () => {
+    dispatch(logout());
+    
+  };
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage, {
@@ -383,7 +387,7 @@ const ProfileUI = () => {
         position: "top",
       });
       dispatch(messageClear());
-      setNotices('')
+      setNotices("");
     }
 
     if (errorMessage) {
@@ -474,7 +478,11 @@ const ProfileUI = () => {
 
               <Flex flex="1" justify="space-between" align="start" w="full">
                 <VStack align="start" spacing={2}>
-                  <Heading  fontFamily="Noto Sans Lao, serif" size="lg" color={textColor}>
+                  <Heading
+                    fontFamily="Noto Sans Lao, serif"
+                    size="lg"
+                    color={textColor}
+                  >
                     {formData.name || "User Name"}
                   </Heading>
                   <Text fontSize="lg" color={accentColor} fontWeight="medium">
@@ -773,7 +781,12 @@ const ProfileUI = () => {
                     >
                       Settings
                     </Button> */}
-                    <Button w="full" colorScheme="red" variant="outline">
+                    <Button
+                      w="full"
+                      onClick={() => handlelogout()}
+                      colorScheme="red"
+                      variant="outline"
+                    >
                       ອອກຈາກລະບົບ
                     </Button>
                   </VStack>

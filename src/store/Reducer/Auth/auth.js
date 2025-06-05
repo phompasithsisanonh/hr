@@ -2,7 +2,6 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../../API/api";
 // import { jwtDecode } from "jwt-decode";
 const returnRole = (token) => {
-  console.log("Token found:", token);
   if (token) {
     // const decodeToken = jwtDecode(token);
     // const expireTime = new Date(decodeToken.exp * 1000);
@@ -217,6 +216,29 @@ export const deletePostNotice = createAsyncThunk(
     }
   }
 );
+//logout
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue, fulfillWithValue }) => {
+    try {
+      const { data } = await api.post(
+        `/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      if (data.success) {
+        localStorage.removeItem("authToken"); // ลบ localStorage ด้วย
+        window.location.href = "/login";
+      }
+      return fulfillWithValue(data);
+    } catch (error) {
+      // console.log(error.response.data)
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 export const authReducer = createSlice({
   name: "auth",
   initialState: {
@@ -347,6 +369,18 @@ export const authReducer = createSlice({
         state.successMessage = payload.message;
         state.token = returnRole(payload.user);
         state.role = returnRole(payload.user);
+      })
+      //logout
+      .addCase(logout.pending, (state, { payload }) => {
+        state.loader = true;
+      })
+      .addCase(logout.rejected, (state, { payload }) => {
+        state.loader = false;
+        state.errorMessage = payload.message;
+      })
+      .addCase(logout.fulfilled, (state, { payload }) => {
+        state.loader = false;
+        state.successMessage = payload.message;
       });
   },
 });

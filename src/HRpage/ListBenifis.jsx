@@ -201,11 +201,18 @@ const ListBenifis = () => {
       })
     );
   };
-  console.log(data);
+
   const SendData = (item) => {
-    const checkItem = data?.item.some((items) => items?._id === item?._id);
+    const checkItem = data?.item?.some((items) => items?._id === item?._id);
     if (checkItem) {
       toast.error("ມີໃນຕົວເລືອກແລ້ວ", {
+        duration: 3000,
+        position: "top",
+      });
+      return;
+    }
+    if(!item){
+  toast.error("ກະລຸນາປ້ອນຕົວເລືອກ", {
         duration: 3000,
         position: "top",
       });

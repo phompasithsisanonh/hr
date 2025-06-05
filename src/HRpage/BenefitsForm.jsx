@@ -231,13 +231,14 @@ const BenefitsForm = () => {
               <Heading
                 size="lg"
                 color="white"
+                 fontFamily="Noto Sans Lao, serif"
                 textAlign="center"
                 fontWeight="600"
               >
-                Add New Employee Benefit
+                ຈັດການສິດທິປະໂຫຍດ
               </Heading>
               <Text color="brand.50" textAlign="center" mt={2} fontSize="md">
-                Configure and manage employee benefits
+                ສິດທິປະໂຫຍດໃຫ້ພະນັກງານ
               </Text>
             </CardHeader>
 
@@ -254,7 +255,7 @@ const BenefitsForm = () => {
                       color="gray.700"
                     >
                       <Icon as={FiUser} color="brand.500" />
-                      Benefit Name
+                      ຊື່ສິດທິປະໂຫຍດ
                     </FormLabel>
                     <Input
                       value={formData.benefitName}
@@ -288,7 +289,7 @@ const BenefitsForm = () => {
                       color="gray.700"
                     >
                       <Icon as={FiFileText} color="brand.500" />
-                      Benefit Description
+                      ລາຍລະອຽດສິດທິ
                     </FormLabel>
                     <Textarea
                       value={formData.benefitDescription}
@@ -329,7 +330,7 @@ const BenefitsForm = () => {
                         color="gray.700"
                       >
                         <Icon as={FiTag} color="brand.500" />
-                        Benefit Type
+                        ປະເພດສິດທິ
                       </FormLabel>
                       <Select
                         value={formData.benefitType}
@@ -372,7 +373,7 @@ const BenefitsForm = () => {
                         color="gray.700"
                       >
                         <Icon as={FiUsers} color="brand.500" />
-                        Eligibility Conditions
+                        ເງື່ອນໄຂໄດ້ຮັບ
                       </FormLabel>
                       <Input
                         value={formData.eligibilityConditions}
@@ -411,7 +412,7 @@ const BenefitsForm = () => {
                         color="gray.700"
                       >
                         <Icon as={FiDollarSign} color="brand.500" />
-                        Benefit Limit (Optional)
+                      ຈຳກັດຈຳນວນ (ຖ້າມີ)
                       </FormLabel>
                       <NumberInput
                         value={formData.benefitLimit}
@@ -442,7 +443,7 @@ const BenefitsForm = () => {
                         color="gray.700"
                       >
                         <Icon as={FiPaperclip} color="brand.500" />
-                        Attach Document
+                        ເອກະສານສິດທິ
                       </FormLabel>
                       <Input
                         type="file"
@@ -473,7 +474,7 @@ const BenefitsForm = () => {
                       fontWeight="600"
                       color="gray.700"
                     >
-                      Amount
+                      ຈຳນວນເງິນ
                     </FormLabel>
                     <Input
                       value={formData.amount}
@@ -506,7 +507,7 @@ const BenefitsForm = () => {
                       color="gray.700"
                     >
                       <Icon as={FiToggleLeft} color="brand.500" />
-                      Status
+                      ສະຖານະ
                     </FormLabel>
                     <HStack>
                       <Switch
@@ -528,10 +529,7 @@ const BenefitsForm = () => {
 
                   {/* Action Buttons */}
                   <HStack
-                    spacing={4}
-                    pt={6}
-                    justify={{ base: "stretch", md: "flex-end" }}
-                    direction={{ base: "column", md: "row" }}
+                    
                   >
                     <Button
                       type="button"
@@ -542,22 +540,23 @@ const BenefitsForm = () => {
                       borderRadius="lg"
                       leftIcon={<FiX />}
                       flex={{ base: "1", md: "none" }}
-                      minW="140px"
+                      minW="100px"
                     >
-                      Cancel
+                      ຍົກເລີກ
                     </Button>
                     <Button
                       type="button"
                       onClick={handleSubmit}
                       colorScheme="brand"
                       size="lg"
+                     
                       borderRadius="lg"
                       leftIcon={<FiCheck />}
                       flex={{ base: "1", md: "none" }}
                       minW="140px"
                       _hover={{ transform: "translateY(-1px)", shadow: "lg" }}
                     >
-                      Add Benefit
+                      ບັນທຶກ
                     </Button>
                   </HStack>
                 </VStack>

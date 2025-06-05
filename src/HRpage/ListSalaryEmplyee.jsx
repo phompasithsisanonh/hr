@@ -37,8 +37,6 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  Grid,
-  GridItem,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -49,11 +47,15 @@ import {
   Image,
   VStack,
   IconButton,
+  Stack,
+  SimpleGrid,
+  useBreakpointValue,
+  HStack,
 } from "@chakra-ui/react";
 import { SearchIcon, ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Download } from "lucide-react"; // หรือไอคอนอื่น ๆ ที่ต้องการ
+import { Download } from "lucide-react";
 import toast from "react-hot-toast";
 import autoTable from "jspdf-autotable";
 
@@ -70,9 +72,16 @@ const SalaryDashboard = () => {
     direction: "ascending",
   });
   const [item, setItem] = useState();
+
+  // Responsive breakpoints
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const cardColumns = useBreakpointValue({ base: 1, md: 2, lg: 3 });
+  const modalSize = useBreakpointValue({ base: "full", md: "xl", lg: "2xl" });
+
   useEffect(() => {
     dispatch(getSalary());
   }, [dispatch]);
+
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);
@@ -83,6 +92,7 @@ const SalaryDashboard = () => {
       dispatch(messageClear());
     }
   }, [successMessage, errorMessage, dispatch]);
+
   const requestSort = (key) => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
@@ -143,7 +153,6 @@ const SalaryDashboard = () => {
 
   const downloadPDF = (id) => {
     const input = payslipRef.current[id];
-    console.log(input);
     html2canvas(input).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF();
@@ -151,33 +160,28 @@ const SalaryDashboard = () => {
       pdf.save(`payslip_${id}.pdf`);
     });
   };
+
   const handleClick = (item) => {
     onOpen();
-    console.log(item);
     setItem(item);
   };
+
   const handleDelete = (id) => {
     dispatch(deletesalarycalu(id)).then(() => dispatch(getSalary()));
   };
+
   const generatePDF = (data) => {
     const doc = new jsPDF();
-
-    // Company Name
     doc.setFontSize(22);
     doc.text("YOUR COMPANY NAME", 105, 20, { align: "center" });
-
-    // Slip Title
     doc.setFontSize(16);
     doc.text("ລາຍການເງິນເດືອນ ", 105, 30, { align: "center" });
-
-    // Employee Info
     doc.setFontSize(12);
-    doc.text(`${data.personalInfo.fullName}`, 20, 50);
+    doc.text(`${data.personalInfo?.fullName || 'N/A'}`, 20, 50);
     doc.text("Position: Software Developer", 20, 60);
     doc.text(`${data?.employeeCode}`, 20, 70);
     doc.text(data.date, 150, 50);
 
-    // Salary Table
     autoTable(doc, {
       startY: 80,
       head: [["ລາຍການ", "ຈຳນວນເງິນ ກີບ"]],
@@ -193,7 +197,6 @@ const SalaryDashboard = () => {
           `${data.netSalary.toLocaleString()}`,
         ],
       ],
-
       theme: "grid",
       headStyles: {
         fillColor: [0, 102, 204],
@@ -204,174 +207,285 @@ const SalaryDashboard = () => {
       styles: { fontSize: 12 },
     });
 
-    // Signature Area
     const finalY = doc.lastAutoTable.finalY + 30;
     doc.setFontSize(12);
     doc.text("ລາຍເຊັນ: _______________________", 20, finalY);
-
-    // Footer
     doc.setFontSize(10);
     doc.text(
       "This is a computer-generated slip. No signature required if printed electronically.",
       20,
       290
     );
-
-    // Save PDF
     doc.save("salary_slip.pdf");
   };
 
-  return (
-    <Box bg="gray.50" minH="100vh" py={8}>
-      {/* //receipt */}
+  // Mobile Card Component for better mobile display
+  const MobileSalaryCard = ({ salary, index }) => (
+    <Card mb={4} shadow="md" borderRadius="lg" bg={index % 2 === 0 ? bgColor : "gray.50"}>
+      <CardBody>
+        <VStack spacing={3} align="stretch">
+          <HStack justify="space-between">
+            <Badge colorScheme="blue" p={2} borderRadius="md" fontSize="sm">
+              {salary.employeeCode}
+            </Badge>
+            <Text fontSize="sm" color="gray.500">
+              {formatDate(salary?.date)}
+            </Text>
+          </HStack>
+          
+          <Divider />
+          
+          <SimpleGrid columns={2} spacing={3} fontSize="sm">
+            <Box>
+              <Text color="gray.500">ເງິນເດືອນພື້ນຖານ:</Text>
+              <Text fontWeight="medium">{formatCurrency(salary.basicSalary)}</Text>
+            </Box>
+            <Box>
+              <Text color="gray.500">ລາຍຮັບເພີ່ມ:</Text>
+              <Text fontWeight="medium">{formatCurrency(salary.netIncome)}</Text>
+            </Box>
+            <Box>
+              <Text color="gray.500">ປະກັນສັງຄົມ:</Text>
+              <Text fontWeight="medium">{formatCurrency(salary.socialSecurityMoney)}</Text>
+            </Box>
+            <Box>
+              <Text color="gray.500">ອາກອນ:</Text>
+              <Text fontWeight="medium">{formatCurrency(salary.tax)}</Text>
+            </Box>
+          </SimpleGrid>
+          
+          <Divider />
+          
+          <HStack justify="space-between" align="center">
+            <Box>
+              <Text fontSize="xs" color="gray.500">ເງິນເດືອນສຸດທິ</Text>
+              <Text fontWeight="bold" color="green.600" fontSize="lg">
+                {formatCurrency(salary.netSalary)}
+              </Text>
+            </Box>
+            <Menu>
+              <MenuButton
+                as={Button}
+                rightIcon={<ChevronDownIcon />}
+                size="sm"
+                colorScheme="blue"
+              >
+                ຄຳສັ່ງ
+              </MenuButton>
+              <MenuList>
+                <MenuItem onClick={() => generatePDF(salary)}>
+                  ລາຍລະອຽດ
+                </MenuItem>
+                <MenuItem onClick={() => handleClick(salary)}>
+                  ພິມໃບເງິນເດືອນ
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                  onClick={() => handleDelete(salary._id)}
+                  color="red.500"
+                >
+                  ລຶບຂໍ້ມູນ
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </HStack>
+        </VStack>
+      </CardBody>
+    </Card>
+  );
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+  return (
+    <Box bg="gray.50" minH="100vh" py={{ base: 4, md: 8 }}>
+      {/* Modal for payslip */}
+      <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
         <ModalOverlay />
-        <ModalContent bg="white" p="6" borderRadius="md" maxW="700px" w="100vw">
+        <ModalContent 
+          bg="white" 
+          p={{ base: 2, md: 6 }} 
+          borderRadius="md" 
+          maxW={{ base: "95vw", md: "700px" }}
+          mx={{ base: 2, md: "auto" }}
+        >
           <ModalHeader>
-            {" "}
             <Flex justify="space-between" align="center" mb="4">
-              <Text fontSize="xl" fontWeight="bold">
+              <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
                 ໃບເງິນເດືອນພະນັກງານ
               </Text>
             </Flex>
           </ModalHeader>
 
-          <ModalBody>
+          <ModalBody px={{ base: 2, md: 6 }}>
             <Box ref={(el) => (payslipRef.current[item?.employeeCode] = el)}>
-              {/* Header */}
-
-              {/* Body */}
               <VStack spacing="6" align="stretch">
                 {/* Company & Title */}
-                <Flex paddingLeft={"30px"} align="center" gap="4">
-                  <Image src="/api/placeholder/100/100" boxSize="70px" />
+                <Flex 
+                  paddingLeft={{ base: "10px", md: "30px" }} 
+                  align="center" 
+                  gap="4"
+                  direction={{ base: "column", md: "row" }}
+                  textAlign={{ base: "center", md: "left" }}
+                >
+                  <Image src="/api/placeholder/100/100" boxSize={{ base: "50px", md: "70px" }} />
                   <Box>
-                    <Text fontSize="lg" fontWeight="bold">
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="bold">
                       ບໍລິສັດ ຊື່ບໍລິສັດຂອງທ່ານ
                     </Text>
-                    <Text>ໃບເງິນເດືອນປະຈຳເດືອນ {formatDate(item?.date)}</Text>
+                    <Text fontSize={{ base: "sm", md: "md" }}>
+                      ໃບເງິນເດືອນປະຈຳເດືອນ {formatDate(item?.date)}
+                    </Text>
                   </Box>
                 </Flex>
 
                 {/* Employee Details */}
-                <Box paddingLeft={"30px"}>
-                  <Flex mb="2">
-                    <Text fontWeight="medium" minW="160px">
-                      ລະຫັດພະນັກງານ:
-                    </Text>
-                    <Text>{item?.employeeCode}</Text>
-                  </Flex>
-                  <Flex>
-                    <Text fontWeight="medium" minW="160px">
-                      ວັນທີຈ່າຍເງິນເດືອນ:
-                    </Text>
-                    <Text>{formatDate(item?.date)}</Text>
-                  </Flex>
+                <Box paddingLeft={{ base: "10px", md: "30px" }}>
+                  <Stack spacing={2} direction={{ base: "column", md: "row" }}>
+                    <Box>
+                      <Text fontWeight="medium" fontSize="sm">
+                        ລະຫັດພະນັກງານ: {item?.employeeCode}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="medium" fontSize="sm">
+                        ວັນທີຈ່າຍເງິນເດືອນ: {formatDate(item?.date)}
+                      </Text>
+                    </Box>
+                  </Stack>
                 </Box>
 
                 <Divider />
 
-                {/* Salary Table */}
-                <Table variant="simple" size="sm">
-                  <Thead>
-                    <Tr>
-                      <Th
-                        fontFamily="Noto Sans Lao, serif"
-                        colSpan="2"
-                        textAlign="center"
-                      >
-                        ລາຍລະອຽດເງິນເດືອນ
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    <Tr>
-                      <Td>ເງິນເດືອນພື້ນຖານ</Td>
-                      <Td isNumeric>{formatCurrency(item?.basicSalary)} LAK</Td>
-                    </Tr>
-                    <Tr>
-                      <Td>ເງິນລວ່ງເວລາ</Td>
-                      <Td isNumeric>
-                        {formatCurrency(item?.salaryFirst - item?.basicSalary)}{" "}
-                        LAK
-                      </Td>
-                    </Tr>
-                    <Tr>
-                      <Td>ເງິນເດືອນຂັ້ນຕົ້ນ</Td>
-                      <Td isNumeric>{formatCurrency(item?.salaryFirst)} LAK</Td>
-                    </Tr>
-                    <Tr bg="green.50">
-                      <Td>ລາຍຮັບເພີ່ມ</Td>
-                      <Td isNumeric>{formatCurrency(item?.netIncome)} LAK</Td>
-                    </Tr>
-                    <Tr bg="red.50">
-                      <Td>ປະກັນສັງຄົມ</Td>
-                      <Td isNumeric>
-                        -{formatCurrency(item?.socialSecurityMoney)} LAK
-                      </Td>
-                    </Tr>
-                    <Tr bg="red.50">
-                      <Td>ລາຍຈ່າຍເພີ່ມ</Td>
-                      <Td isNumeric>-{formatCurrency(item?.netExpense)} LAK</Td>
-                    </Tr>
-                    <Tr bg="red.50">
-                      <Td>ອາກອນເງິນເດືອນ</Td>
-                      <Td isNumeric>-{formatCurrency(item?.tax)} LAK</Td>
-                    </Tr>
-                    <Tr fontWeight="bold" bg="gray.100">
-                      <Td>ເງິນເດືອນສຸດທິ</Td>
-                      <Td isNumeric>{formatCurrency(item?.netSalary)} LAK</Td>
-                    </Tr>
-                  </Tbody>
-                </Table>
+                {/* Salary Table - Responsive */}
+                <Box overflowX="auto">
+                  <Table variant="simple" size={{ base: "sm", md: "md" }}>
+                    <Thead>
+                      <Tr>
+                        <Th
+                          fontFamily="Noto Sans Lao, serif"
+                          colSpan="2"
+                          textAlign="center"
+                          fontSize={{ base: "xs", md: "sm" }}
+                        >
+                          ລາຍລະອຽດເງິນເດືອນ
+                        </Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      <Tr>
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ເງິນເດືອນພື້ນຖານ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          {formatCurrency(item?.basicSalary)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr bg="green.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ເງິນລວ່ງເວລາ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          {formatCurrency(item?.salaryFirst - item?.basicSalary)} LAK
+                        </Td>
+                      </Tr>
+                        <Tr bg="green.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ເງິນສິດທິປະໂຫຍດ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          {formatCurrency(item?.NetBennifits)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr bg="green.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ລາຍຮັບເພີ່ມ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          {formatCurrency(item?.netIncome)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr>
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ເງິນເດືອນຂັ້ນຕົ້ນ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          {formatCurrency(item?.salaryFirst +item?.netIncome+item?.NetBennifits )} LAK
+                        </Td>
+                      </Tr>
+                      <Tr bg="red.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ປະກັນສັງຄົມ </Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          -{formatCurrency(item?.socialSecurityMoney)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr bg="red.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ລາຍຈ່າຍເພີ່ມ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          -{formatCurrency(item?.netExpense)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr bg="red.50">
+                        <Td fontSize={{ base: "xs", md: "sm" }}>ອາກອນເງິນເດືອນ</Td>
+                        <Td isNumeric fontSize={{ base: "xs", md: "sm" }}>
+                          -{formatCurrency(item?.tax)} LAK
+                        </Td>
+                      </Tr>
+                      <Tr fontWeight="bold" bg="gray.100">
+                        <Td fontSize={{ base: "sm", md: "md" }}>ເງິນເດືອນສຸດທິ</Td>
+                        <Td isNumeric fontSize={{ base: "sm", md: "md" }}>
+                          {formatCurrency(item?.netSalary)} LAK
+                        </Td>
+                      </Tr>
+                    </Tbody>
+                  </Table>
+                </Box>
 
                 {/* Signatures */}
-                <Flex justify="space-around" pt="6">
+                <Stack 
+                  direction={{ base: "column", md: "row" }} 
+                  justify="space-around" 
+                  pt="6" 
+                  spacing={4}
+                >
                   <Box textAlign="center">
-                    <Box borderBottom="1px solid" w="150px" mb="2" />
-                    <Text>ລາຍເຊັນພະນັກງານ</Text>
+                    <Box borderBottom="1px solid" w="150px" mb="2" mx="auto" />
+                    <Text fontSize={{ base: "xs", md: "sm" }}>ລາຍເຊັນພະນັກງານ</Text>
                   </Box>
                   <Box textAlign="center">
-                    <Box borderBottom="1px solid" w="150px" mb="2" />
-                    <Text>ລາຍເຊັນຜູ້ອໍານວຍການ</Text>
+                    <Box borderBottom="1px solid" w="150px" mb="2" mx="auto" />
+                    <Text fontSize={{ base: "xs", md: "sm" }}>ລາຍເຊັນຜູ້ອໍານວຍການ</Text>
                   </Box>
-                </Flex>
+                </Stack>
               </VStack>
-
-              {/* Footer */}
             </Box>
           </ModalBody>
+          
           <ModalFooter>
-            <Flex justify="flex-end" gap="3" mt="6" className="no-print">
+            <Stack 
+              direction={{ base: "column", md: "row" }} 
+              spacing={3} 
+              width="full"
+              justify="flex-end"
+            >
               <IconButton
                 icon={<Download />}
                 colorScheme="red"
-                size="md"
-                onClick={() => downloadPDF(item.employeeCode)}
+                size={{ base: "sm", md: "md" }}
+                onClick={() => downloadPDF(item?.employeeCode)}
               />
-
               <Button
                 colorScheme="blue"
-                size="md"
+                size={{ base: "sm", md: "md" }}
                 onClick={() => window.print()}
               >
                 ພິມໃບເງິນເດືອນ
               </Button>
-              <Button variant="outline" size="md" onClick={onClose}>
+              <Button 
+                variant="outline" 
+                size={{ base: "sm", md: "md" }} 
+                onClick={onClose}
+              >
                 ປິດ
               </Button>
-            </Flex>
+            </Stack>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      <Container maxW="container.xl">
+      <Container maxW="container.xl" px={{ base: 4, md: 8 }}>
         <Card mb={6} shadow="md" borderRadius="lg">
           <CardHeader pb={0}>
             <Heading
               fontFamily="Noto Sans Lao, serif"
-              size="lg"
+              size={{ base: "md", md: "lg" }}
               fontWeight="bold"
               color={textColor}
             >
@@ -393,51 +507,49 @@ const SalaryDashboard = () => {
               </Alert>
             )}
 
-            <Grid templateColumns="repeat(3, 1fr)" gap={6} mb={6}>
-              <GridItem>
-                <Card bg="blue.50" borderRadius="lg">
-                  <CardBody>
-                    <Stat>
-                      <StatLabel fontSize="md" color="blue.600">
-                        ຈຳນວນພະນັກງານທັງໝົດ
-                      </StatLabel>
-                      <StatNumber color="blue.600" fontSize="2xl">
-                        {totalEmployees}
-                      </StatNumber>
-                    </Stat>
-                  </CardBody>
-                </Card>
-              </GridItem>
-              <GridItem>
-                <Card bg="green.50" borderRadius="lg">
-                  <CardBody>
-                    <Stat>
-                      <StatLabel fontSize="md" color="green.600">
-                        ເງິນເດືອນລວມທັງໝົດ
-                      </StatLabel>
-                      <StatNumber color="green.600" fontSize="2xl">
-                        {formatCurrency(totalSalary)}
-                      </StatNumber>
-                    </Stat>
-                  </CardBody>
-                </Card>
-              </GridItem>
-              <GridItem>
-                <Card bg="purple.50" borderRadius="lg">
-                  <CardBody>
-                    <Stat>
-                      <StatLabel fontSize="md" color="purple.600">
-                        ເງິນເດືອນສະເລ່ຍ
-                      </StatLabel>
-                      <StatNumber color="purple.600" fontSize="2xl">
-                        {formatCurrency(averageSalary)}
-                      </StatNumber>
-                    </Stat>
-                  </CardBody>
-                </Card>
-              </GridItem>
-            </Grid>
+            {/* Summary Cards - Responsive Grid */}
+            <SimpleGrid columns={cardColumns} spacing={6} mb={6}>
+              <Card bg="blue.50" borderRadius="lg">
+                <CardBody>
+                  <Stat>
+                    <StatLabel fontSize={{ base: "sm", md: "md" }} color="blue.600">
+                      ຈຳນວນພະນັກງານທັງໝົດ
+                    </StatLabel>
+                    <StatNumber color="blue.600" fontSize={{ base: "xl", md: "2xl" }}>
+                      {totalEmployees}
+                    </StatNumber>
+                  </Stat>
+                </CardBody>
+              </Card>
+              
+              <Card bg="green.50" borderRadius="lg">
+                <CardBody>
+                  <Stat>
+                    <StatLabel fontSize={{ base: "sm", md: "md" }} color="green.600">
+                      ເງິນເດືອນລວມທັງໝົດ
+                    </StatLabel>
+                    <StatNumber color="green.600" fontSize={{ base: "lg", md: "2xl" }}>
+                      {formatCurrency(totalSalary)}
+                    </StatNumber>
+                  </Stat>
+                </CardBody>
+              </Card>
+              
+              <Card bg="purple.50" borderRadius="lg">
+                <CardBody>
+                  <Stat>
+                    <StatLabel fontSize={{ base: "sm", md: "md" }} color="purple.600">
+                      ເງິນເດືອນສະເລ່ຍ
+                    </StatLabel>
+                    <StatNumber color="purple.600" fontSize={{ base: "lg", md: "2xl" }}>
+                      {formatCurrency(averageSalary)}
+                    </StatNumber>
+                  </Stat>
+                </CardBody>
+              </Card>
+            </SimpleGrid>
 
+            {/* Search Input */}
             <InputGroup mb={6}>
               <InputLeftElement pointerEvents="none">
                 <SearchIcon color="gray.400" />
@@ -448,137 +560,199 @@ const SalaryDashboard = () => {
                 borderColor={borderColor}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                fontSize={{ base: "sm", md: "md" }}
               />
             </InputGroup>
 
-            <Box overflowX="auto">
-              <Table variant="simple" borderRadius="lg" overflow="hidden">
-                <Thead bg="gray.100">
-                  <Tr>
-                    <Th
-                      cursor="pointer"
-                      onClick={() => requestSort("employeeCode")}
-                      position="relative"
-                    >
-                      <Flex align="center">
-                        ລະຫັດພະນັກງານ
-                        {sortConfig.key === "employeeCode" &&
-                          (sortConfig.direction === "ascending" ? (
-                            <ChevronUpIcon ml={1} />
-                          ) : (
-                            <ChevronDownIcon ml={1} />
-                          ))}
-                      </Flex>
-                    </Th>
-                    <Th cursor="pointer" onClick={() => requestSort("date")}>
-                      <Flex align="center">
-                        ວັນທີ
-                        {sortConfig.key === "date" &&
-                          (sortConfig.direction === "ascending" ? (
-                            <ChevronUpIcon ml={1} />
-                          ) : (
-                            <ChevronDownIcon ml={1} />
-                          ))}
-                      </Flex>
-                    </Th>
-                    <Th
-                      cursor="pointer"
-                      onClick={() => requestSort("basicSalary")}
-                    >
-                      <Flex align="center">
-                        ເງິນເດືອນພື້ນຖານ
-                        {sortConfig.key === "basicSalary" &&
-                          (sortConfig.direction === "ascending" ? (
-                            <ChevronUpIcon ml={1} />
-                          ) : (
-                            <ChevronDownIcon ml={1} />
-                          ))}
-                      </Flex>
-                    </Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ລາຍຮັບເພີ່ມ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ປະກັນສັງຄົມ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ອາກອນ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ລາຍຈ່າຍເພີ່ມ</Th>
-                    <Th
-                      cursor="pointer"
-                      onClick={() => requestSort("netSalary")}
-                    >
-                      <Flex align="center">
-                        ເງິນເດືອນສຸດທິ
-                        {sortConfig.key === "netSalary" &&
-                          (sortConfig.direction === "ascending" ? (
-                            <ChevronUpIcon ml={1} />
-                          ) : (
-                            <ChevronDownIcon ml={1} />
-                          ))}
-                      </Flex>
-                    </Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ຄຳສັ່ງ</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {sortedSalaries.length > 0 ? (
-                    sortedSalaries.map((salary, index) => (
-                      <Tr
-                        key={salary._id}
-                        _hover={{ bg: hoverBg }}
-                        bg={index % 2 === 0 ? bgColor : "gray.50"}
+            {/* Conditional Rendering: Mobile Cards vs Desktop Table */}
+            {isMobile ? (
+              // Mobile Card Layout
+              <VStack spacing={4} align="stretch">
+                {sortedSalaries.length > 0 ? (
+                  sortedSalaries.map((salary, index) => (
+                    <MobileSalaryCard 
+                      key={salary._id} 
+                      salary={salary} 
+                      index={index}
+                    />
+                  ))
+                ) : (
+                  <Card>
+                    <CardBody>
+                      <Text textAlign="center" py={10} fontSize="lg" color="gray.500">
+                        ບໍ່ພົບຂໍ້ມູນເງິນເດືອນພະນັກງານ
+                      </Text>
+                    </CardBody>
+                  </Card>
+                )}
+              </VStack>
+            ) : (
+              // Desktop Table Layout
+              <Box overflowX="auto">
+                <Table variant="simple" borderRadius="lg" overflow="hidden" minW="800px">
+                  <Thead bg="gray.100">
+                    <Tr>
+                      <Th
+                        cursor="pointer"
+                        onClick={() => requestSort("employeeCode")}
+                        position="relative"
+                        fontSize={{ base: "xs", md: "sm" }}
                       >
-                        <Td>
-                          <Badge colorScheme="blue" p={1} borderRadius="md">
-                            {salary.employeeCode}
-                          </Badge>
-                        </Td>
-                        <Td>{formatDate(salary?.date)}</Td>
-                        <Td>{formatCurrency(salary.basicSalary)}</Td>
-                        <Td>{formatCurrency(salary.netIncome)}</Td>
-                        <Td>{formatCurrency(salary.socialSecurityMoney)}</Td>
-                        <Td>{formatCurrency(salary.tax)}</Td>
-                        <Td>{formatCurrency(salary.netExpense)}</Td>
-                        <Td fontWeight="bold" color="green.600">
-                          {formatCurrency(salary.netSalary)}
-                        </Td>
-                        <Td>
-                          <Menu>
-                            <MenuButton
-                              as={Button}
-                              rightIcon={<ChevronDownIcon />}
-                              size="sm"
-                              colorScheme="blue"
-                            >
-                              ຄຳສັ່ງ
-                            </MenuButton>
-                            <MenuList>
-                              <MenuItem onClick={() => generatePDF(salary)}>
-                                ລາຍລະອຽດ
-                              </MenuItem>
-                              <MenuItem onClick={() => handleClick(salary)}>
-                                ພິມໃບເງິນເດືອນ
-                              </MenuItem>
-                              <Divider />
-                              <MenuItem
-                                onClick={() => handleDelete(salary._id)}
-                                color="red.500"
+                        <Flex align="center">
+                          ລະຫັດພະນັກງານ
+                          {sortConfig.key === "employeeCode" &&
+                            (sortConfig.direction === "ascending" ? (
+                              <ChevronUpIcon ml={1} />
+                            ) : (
+                              <ChevronDownIcon ml={1} />
+                            ))}
+                        </Flex>
+                      </Th>
+                      <Th 
+                        cursor="pointer" 
+                        onClick={() => requestSort("date")}
+                        fontSize={{ base: "xs", md: "sm" }}
+                      >
+                        <Flex align="center">
+                          ວັນທີ
+                          {sortConfig.key === "date" &&
+                            (sortConfig.direction === "ascending" ? (
+                              <ChevronUpIcon ml={1} />
+                            ) : (
+                              <ChevronDownIcon ml={1} />
+                            ))}
+                        </Flex>
+                      </Th>
+                      <Th
+                        cursor="pointer"
+                        onClick={() => requestSort("basicSalary")}
+                        fontSize={{ base: "xs", md: "sm" }}
+                      >
+                        <Flex align="center">
+                          ເງິນເດືອນພື້ນຖານ
+                          {sortConfig.key === "basicSalary" &&
+                            (sortConfig.direction === "ascending" ? (
+                              <ChevronUpIcon ml={1} />
+                            ) : (
+                              <ChevronDownIcon ml={1} />
+                            ))}
+                        </Flex>
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ລາຍຮັບສິດທິ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ລາຍຮັບເພີ່ມ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ລາຍຈ່າຍເພີ່ມ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ປະກັນສັງຄົມ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ອາກອນ
+                      </Th>
+                      <Th
+                        cursor="pointer"
+                        onClick={() => requestSort("netSalary")}
+                        fontSize={{ base: "xs", md: "sm" }}
+                      >
+                        <Flex align="center">
+                          ເງິນເດືອນສຸດທິ
+                          {sortConfig.key === "netSalary" &&
+                            (sortConfig.direction === "ascending" ? (
+                              <ChevronUpIcon ml={1} />
+                            ) : (
+                              <ChevronDownIcon ml={1} />
+                            ))}
+                        </Flex>
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" fontSize={{ base: "xs", md: "sm" }}>
+                        ຄຳສັ່ງ
+                      </Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {sortedSalaries.length > 0 ? (
+                      sortedSalaries.map((salary, index) => (
+                        <Tr
+                          key={salary._id}
+                          _hover={{ bg: hoverBg }}
+                          bg={index % 2 === 0 ? bgColor : "gray.50"}
+                        >
+                          <Td>
+                            <Badge colorScheme="blue" p={1} borderRadius="md" fontSize="xs">
+                              {salary.employeeCode}
+                            </Badge>
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatDate(salary?.date)}
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.basicSalary)}
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.NetBennifits)}
+                          </Td>
+                           <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.netIncome)}
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.netExpense)}
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.socialSecurityMoney)}
+                          </Td>
+                          <Td fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.tax)}
+                          </Td>
+                          <Td fontWeight="bold" color="green.600" fontSize={{ base: "xs", md: "sm" }}>
+                            {formatCurrency(salary.netSalary)}
+                          </Td>
+                          <Td>
+                            <Menu>
+                              <MenuButton
+                                as={Button}
+                                rightIcon={<ChevronDownIcon />}
+                                size="sm"
+                                colorScheme="blue"
+                                fontSize={{ base: "xs", md: "sm" }}
                               >
-                                ລຶບຂໍ້ມູນ
-                              </MenuItem>
-                            </MenuList>
-                          </Menu>
+                                ຄຳສັ່ງ
+                              </MenuButton>
+                              <MenuList>
+                                <MenuItem onClick={() => generatePDF(salary)}>
+                                  ລາຍລະອຽດ
+                                </MenuItem>
+                                <MenuItem onClick={() => handleClick(salary)}>
+                                  ພິມໃບເງິນເດືອນ
+                                </MenuItem>
+                                <Divider />
+                                <MenuItem
+                                  onClick={() => handleDelete(salary._id)}
+                                  color="red.500"
+                                >
+                                  ລຶບຂໍ້ມູນ
+                                </MenuItem>
+                              </MenuList>
+                            </Menu>
+                          </Td>
+                        </Tr>
+                      ))
+                    ) : (
+                      <Tr>
+                        <Td colSpan={9} textAlign="center" py={10}>
+                          <Text fontSize="lg" color="gray.500">
+                            ບໍ່ພົບຂໍ້ມູນເງິນເດືອນພະນັກງານ
+                          </Text>
                         </Td>
                       </Tr>
-                    ))
-                  ) : (
-                    <Tr>
-                      <Td colSpan={9} textAlign="center" py={10}>
-                        <Text fontSize="lg" color="gray.500">
-                          ບໍ່ພົບຂໍ້ມູນເງິນເດືອນພະນັກງານ
-                        </Text>
-                      </Td>
-                    </Tr>
-                  )}
-                </Tbody>
-              </Table>
-            </Box>
+                    )}
+                  </Tbody>
+                </Table>
+              </Box>
+            )}
           </CardBody>
         </Card>
       </Container>

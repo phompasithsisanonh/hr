@@ -1,8 +1,7 @@
 import {
   Text,
   Box,
-  Grid,
-  GridItem,
+  Stack,
   FormControl,
   FormLabel,
   Input,
@@ -25,8 +24,12 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Stack,
   Heading,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -42,6 +45,7 @@ import { useParams } from "react-router-dom";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import toast from "react-hot-toast";
 import moment from "moment";
+
 const EditdatabaseEmplyee = () => {
   const { id } = useParams();
   const { loader, editDataOneid, successMessage, errorMessage } = useSelector(
@@ -49,7 +53,8 @@ const EditdatabaseEmplyee = () => {
   );
   const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [outworkTime, setOutworkTime] = useState(0);
+  const fixoutwork =moment('17:30', "HH:mm");
+  const [outworkTime, setOutworkTime] = useState(fixoutwork);
   const [workTime, setWorkTime] = useState(0);
 
   const outworkTimeMoment = moment(outworkTime, "HH:mm");
@@ -68,23 +73,21 @@ const EditdatabaseEmplyee = () => {
     setAnnualHolidays: "",
     typeCommission: {},
     typeOfSecurity: [],
-    department: [], // Ensure this is initialized as an array
+    department: [],
   });
-  ///funtion change time
   const isInitialLoad = useRef(true);
   const [newInsuranceType, setNewInsuranceType] = useState("");
   const [newInsuranceRate, setNewInsuranceRate] = useState("");
   const [commissionType, setCommissionType] = useState("");
   const [commissionRate, setCommissionRate] = useState("");
-
   const [newDepartmentType, setNewDepartmentType] = useState("");
   const [newDepartmentRate, setNewDepartmentRate] = useState("");
   const [newDepartmenId, setNewDepartmenId] = useState("");
   const [newPosiontionId, setNewPosiontionId] = useState("");
   const [levelPosiontion, setLevelPosiontion] = useState("");
-
   const [newCountholiday, setNewCountholiday] = useState(0);
   const [newcontent, setNewcontent] = useState("");
+
   useEffect(() => {
     dispatch(editOneidDataEmplyee(id));
   }, [dispatch, id]);
@@ -107,7 +110,7 @@ const EditdatabaseEmplyee = () => {
       setCommissionType(editDataOneid.typeCommission?.type || "");
       setCommissionRate(editDataOneid.typeCommission?.rate || "");
     } else {
-      isInitialLoad.current = false; // ปิด flag หลังโหลดครั้งแรก
+      isInitialLoad.current = false;
     }
   }, [editDataOneid, hours]);
 
@@ -147,11 +150,9 @@ const EditdatabaseEmplyee = () => {
   const handleCommissionTypeChange = (e) => {
     setCommissionType(e.target.value);
   };
-
   const handleCommissionRateChange = (e) => {
     setCommissionRate(e.target.value);
   };
-
   const handleAddInsurance = () => {
     if (newInsuranceType && newInsuranceRate) {
       setFormData({
@@ -165,7 +166,6 @@ const EditdatabaseEmplyee = () => {
       setNewInsuranceRate("");
     }
   };
-
   const handleRemoveInsurance = (insu, index) => {
     const updatedInsurance = [...formData.typeOfSecurity];
     updatedInsurance.splice(index, 1);
@@ -180,7 +180,6 @@ const EditdatabaseEmplyee = () => {
       })
     );
   };
-
   const handleAddDepartment = () => {
     if (newDepartmentType && newDepartmentRate) {
       setFormData({
@@ -190,7 +189,6 @@ const EditdatabaseEmplyee = () => {
           {
             type: newDepartmentType,
             departmentId: newDepartmenId,
-
             position: [
               {
                 type: newDepartmentRate,
@@ -201,12 +199,10 @@ const EditdatabaseEmplyee = () => {
           },
         ],
       });
-      // Clear inputs after adding
       setNewDepartmentType("");
       setNewDepartmentRate("");
     }
   };
-
   const handleRemoveDepartment = (index) => {
     const updatedDepartment = [...formData.department];
     updatedDepartment.splice(index, 1);
@@ -215,7 +211,6 @@ const EditdatabaseEmplyee = () => {
       department: updatedDepartment,
     });
   };
-
   const saveEmployeeData = () => {
     const employeeData = {
       ...formData,
@@ -232,14 +227,11 @@ const EditdatabaseEmplyee = () => {
     );
     setFormData("");
   };
-
-  ////funtion for rdit deparment
   const [editedType, setEditedType] = useState("");
   const [editedPosition, setEditedPosition] = useState([]);
-
   const handleEditDepartment = (dept, index) => {
     setEditedType(dept.type);
-    setEditedPosition([...dept.position]); // Clone positions array
+    setEditedPosition([...dept.position]);
     onOpen();
   };
   const handlePositionChange = (index, newValue) => {
@@ -247,7 +239,6 @@ const EditdatabaseEmplyee = () => {
     updatedPositions[index] = { newValue, index };
     setEditedPosition(updatedPositions);
   };
-
   const saveEdit = () => {
     dispatch(
       edit_deparmentPosition({
@@ -258,7 +249,6 @@ const EditdatabaseEmplyee = () => {
     ).then(() => dispatch(editOneidDataEmplyee(id)));
     onClose();
   };
-
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);
@@ -271,7 +261,7 @@ const EditdatabaseEmplyee = () => {
   }, [successMessage, errorMessage, dispatch]);
 
   return (
-    <div>
+    <Box bg="gray.50" minH="100vh" px={{ base: 4, md: 8 }} py={6}>
       {loader ? (
         <Box
           display="flex"
@@ -293,33 +283,716 @@ const EditdatabaseEmplyee = () => {
               color="blue.500"
               size="xl"
             />
-            <Text mt={4} fontWeight="medium">
+            <Text mt={4} fontWeight="medium" fontSize="md" color="gray.600">
               ກຳລັງໂຫຼດຂໍ້ມູນ...
             </Text>
           </Flex>
         </Box>
       ) : (
-        <Box>
+        <Stack spacing={6}>
+          {/* Heading */}
+          <Heading
+            fontFamily="Noto Sans Lao, sans-serif"
+            fontSize={{ base: "xl", md: "2xl" }}
+            fontWeight="bold"
+            color="gray.800"
+          >
+            ຖານຂໍ້ມູນ
+          </Heading>
+
+          {/* Accordion for Form Sections */}
+          <Accordion allowToggle>
+            {/* Department Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ພະແນກ ແລະ ຕຳແໜ່ງ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ພະແນກ
+                    </FormLabel>
+                    <Select
+                      value={newDepartmentType}
+                      onChange={(e) => setNewDepartmentType(e.target.value)}
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                      _focus={{ borderColor: "blue.500" }}
+                    >
+                      <option value="">ເລືອກພະແນກ</option>
+                      {editDataOneid?.department?.map((data, index) => (
+                        <option key={index} value={data.type}>
+                          {data.type}
+                        </option>
+                      ))}
+                    </Select>
+                    <Input
+                      mt={2}
+                      type="text"
+                      name="type"
+                      value={newDepartmentType}
+                      onChange={(e) => setNewDepartmentType(e.target.value)}
+                      placeholder="ຊື່ພະແນກ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                      isDisabled={editDataOneid?.department?.some(
+                        (dept) => dept.type === newDepartmentType
+                      )}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ລະຫັດພະແນກ
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="newDepartmenId"
+                      value={newDepartmenId}
+                      onChange={(e) => setNewDepartmenId(e.target.value)}
+                      placeholder="ລະຫັດພະແນກ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ຕຳແໜ່ງ
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="rate"
+                      value={newDepartmentRate}
+                      onChange={(e) => setNewDepartmentRate(e.target.value)}
+                      placeholder="ຊື່ຕຳແໜ່ງ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ລະຫັດຕຳແໜ່ງ
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="newPosiontionId"
+                      value={newPosiontionId}
+                      onChange={(e) => setNewPosiontionId(e.target.value)}
+                      placeholder="ລະຫັດຕຳແໜ່ງ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ລະດັບຂັ້ນ
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="levelPosiontion"
+                      value={levelPosiontion}
+                      onChange={(e) => setLevelPosiontion(e.target.value)}
+                      placeholder="ລະດັບຂັ້ນ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <Button
+                    onClick={handleAddDepartment}
+                    colorScheme="blue"
+                    size="md"
+                    w="full"
+                    fontSize="md"
+                    fontFamily="Noto Sans Lao, sans-serif"
+                  >
+                    ເພີ່ມ
+                  </Button>
+                </Stack>
+                {/* Department Table */}
+                {(formData?.department?.length > 0 ||
+                  editDataOneid?.department?.length > 0) && (
+                  <Box overflowX="auto" mt={4}>
+                    <Table variant="simple" size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th
+                            fontFamily="Noto Sans Lao, sans-serif"
+                            fontSize="sm"
+                            color="gray.600"
+                          >
+                            ພະແນກ
+                          </Th>
+                          <Th
+                            fontFamily="Noto Sans Lao, sans-serif"
+                            fontSize="sm"
+                            color="gray.600"
+                          >
+                            ຕຳແໜ່ງ
+                          </Th>
+                          <Th
+                            fontFamily="Noto Sans Lao, sans-serif"
+                            fontSize="sm"
+                            color="gray.600"
+                            width="120px"
+                          >
+                            ຈັດການ
+                          </Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {formData?.department?.map((dept, index) => (
+                          <Tr key={index}>
+                            <Td fontSize="sm">{dept?.type}</Td>
+                            <Td fontSize="sm">
+                              {dept?.position?.map((d) => d?.type).join(", ")}
+                            </Td>
+                            <Td>
+                              <IconButton
+                                aria-label="Delete department"
+                                icon={<DeleteIcon />}
+                                colorScheme="red"
+                                size="md"
+                                fontSize="lg"
+                                onClick={() => handleRemoveDepartment(index)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                        {editDataOneid?.department.map((dept, index) => (
+                          <Tr key={index}>
+                            <Td fontSize="sm">{dept.type}</Td>
+                            <Td fontSize="sm">
+                              {dept.position.map((d) => d.type).join(", ")}
+                            </Td>
+                            <Td>
+                              <Flex gap={2}>
+                                <IconButton
+                                  aria-label="Edit department"
+                                  icon={<EditIcon />}
+                                  colorScheme="blue"
+                                  size="md"
+                                  fontSize="lg"
+                                  onClick={() => handleEditDepartment(dept, index)}
+                                />
+                                <IconButton
+                                  aria-label="Delete department"
+                                  icon={<DeleteIcon />}
+                                  colorScheme="red"
+                                  size="md"
+                                  fontSize="lg"
+                                  onClick={() => handleRemoveDepartment(index)}
+                                />
+                              </Flex>
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                )}
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Overtime Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ຄ່າລ່ວງເວລາ ແລະ ຄ່າມາຊ້າ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດເງິນລ່ວງເວລາຊົ່ວໂມງ
+                    </FormLabel>
+                    <Input
+                      name="otTohour"
+                      value={formData.otTohour}
+                      onChange={handleInputChange}
+                      placeholder="ເງິນຄ່າຊົ່ວໂມງ"
+                      type="number"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດເງິນລ່ວງເວລາເປັນ30ນາທີ
+                    </FormLabel>
+                    <Input
+                      name="otminute"
+                      value={formData.otminute}
+                      onChange={handleInputChange}
+                      placeholder="ອັດຕາເງິນລ່ວງເວລາ"
+                      type="number"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດເງິນມາຊ້າເວລາຊົ່ວໂມງ
+                    </FormLabel>
+                    <Input
+                      name="latTohour"
+                      value={formData.latTohour}
+                      onChange={handleInputChange}
+                      placeholder="ເງິນຄ່າຊົ່ວໂມງ"
+                      type="number"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດເງິນມາຊ້າເວລາເປັນ30ນາທີ
+                    </FormLabel>
+                    <Input
+                      name="latminute"
+                      value={formData.latminute}
+                      onChange={handleInputChange}
+                      placeholder="ອັດຕາເງິນລ່ວງເວລາ"
+                      type="number"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                </Stack>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Work Hours Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ໂມງເຮັດວຽກ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດໂມງເຮັດວຽກ
+                    </FormLabel>
+                    <Input
+                      name="startWorkTime"
+                      value={workTime}
+                      onChange={(e) => setWorkTime(e.target.value)}
+                      placeholder="ກຳນົດໂມງເຮັດວຽກ"
+                      type="time"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດໂມງເລີກວຽກ
+                    </FormLabel>
+                    <Input
+                      value={outworkTime}
+                      onChange={(e) => setOutworkTime(e.target.value)}
+                      placeholder="ກຳນົດໂມງເລີກເຮັດວຽກ"
+                      type="time"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ກຳນົດຈັກຊົ່ວໂມງເຮັດວຽກ
+                    </FormLabel>
+                    <Input
+                      name="standardTimeWorkHour"
+                      value={hours}
+                      disabled={true}
+                      placeholder="ກຳນົດຈັກຊົ່ວໂມງເຮັດວຽກ"
+                      type="number"
+                      fontSize="sm"
+                      bg="gray.100"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                </Stack>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Commission Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ຄ່າຄອມມິຊັ່ນ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ປະເພດຄ່າຄອມມິຊັ່ນ
+                    </FormLabel>
+                    <Input
+                      value={commissionType}
+                      onChange={handleCommissionTypeChange}
+                      placeholder="ປະເພດຄ່າຄອມ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ອັດຕາ
+                    </FormLabel>
+                    <Input
+                      value={commissionRate}
+                      onChange={handleCommissionRateChange}
+                      placeholder="ອັດຕາ"
+                      type="number"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                </Stack>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Annual Holidays Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ວັນພັກປະຈຳປີ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <FormControl isRequired>
+                  <FormLabel fontSize="md" color="gray.600">
+                    ກຳນົດວັນພັກປະຈຳປີ
+                  </FormLabel>
+                  <Input
+                    name="setAnnualHolidays"
+                    value={formData.setAnnualHolidays}
+                    onChange={handleInputChange}
+                    type="number"
+                    placeholder="ຈຳນວນວັນ"
+                    fontSize="sm"
+                    bg="white"
+                    borderColor="gray.300"
+                  />
+                </FormControl>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Holiday Types Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ປະເພດວັນພັກ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ປະເພດລາພັກ
+                    </FormLabel>
+                    <Input
+                      placeholder="ປະເພດລາພັກ"
+                      value={newcontent}
+                      name="newcontent"
+                      type="string"
+                      onChange={(e) => setNewcontent(e.target.value)}
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ຈຳນວນວັນພັກ
+                    </FormLabel>
+                    <Input
+                      type="number"
+                      placeholder="ຈຳນວນວັນ"
+                      name="newCountholiday"
+                      value={newCountholiday}
+                      onChange={(e) => setNewCountholiday(e.target.value)}
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <Button
+                    colorScheme="blue"
+                    size="md"
+                    w="full"
+                    fontSize="md"
+                    fontFamily="Noto Sans Lao, sans-serif"
+                    onClick={handleContentHoliday}
+                  >
+                    ເພີ່ມ
+                  </Button>
+                  {formData?.contentsOfHolidays?.length > 0 && (
+                    <Box overflowX="auto" mt={4}>
+                      <Table variant="simple" size="sm">
+                        <Thead>
+                          <Tr>
+                            <Th
+                              fontFamily="Noto Sans Lao, sans-serif"
+                              fontSize="sm"
+                              color="gray.600"
+                            >
+                              ຈຳນວນວັນພັກ
+                            </Th>
+                            <Th
+                              fontFamily="Noto Sans Lao, sans-serif"
+                              fontSize="sm"
+                              color="gray.600"
+                            >
+                              ປະເພດວັນພັກ
+                            </Th>
+                            <Th
+                              fontFamily="Noto Sans Lao, sans-serif"
+                              fontSize="sm"
+                              color="gray.600"
+                              width="100px"
+                            >
+                              ຈັດການ
+                            </Th>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
+                          {formData?.contentsOfHolidays?.map((insurance, index) => (
+                            <Tr key={index}>
+                              <Td fontSize="sm">{insurance.countday}</Td>
+                              <Td fontSize="sm">{insurance.content}</Td>
+                              <Td>
+                                <IconButton
+                                  aria-label="Delete holiday"
+                                  icon={<DeleteIcon />}
+                                  colorScheme="red"
+                                  size="md"
+                                  fontSize="lg"
+                                  onClick={() => handleRemoveContentHoliday(index)}
+                                />
+                              </Td>
+                            </Tr>
+                          ))}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  )}
+                </Stack>
+              </AccordionPanel>
+            </AccordionItem>
+
+            {/* Insurance Section */}
+            <AccordionItem border="none" bg="white" borderRadius="md" shadow="sm">
+              <AccordionButton p={4}>
+                <Box flex="1" textAlign="left">
+                  <Text fontSize="lg" fontWeight="medium" color="gray.800">
+                    ປະກັນສັງຄົມ
+                  </Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                <Stack spacing={4}>
+                  <FormControl>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ປະເພດປະກັນສັງຄົມ
+                    </FormLabel>
+                    <Input
+                      placeholder="ປະເພດປະກັນສັງຄົມ"
+                      value={newInsuranceType}
+                      onChange={(e) => setNewInsuranceType(e.target.value)}
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ອັດຕາຫັກປະກັນສັງຄົມ
+                    </FormLabel>
+                    <Input
+                      type="number"
+                      placeholder="%"
+                      value={newInsuranceRate}
+                      onChange={(e) => setNewInsuranceRate(e.target.value)}
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
+                    />
+                  </FormControl>
+                  <Button
+                    colorScheme="blue"
+                    size="md"
+                    w="full"
+                    fontSize="md"
+                    fontFamily="Noto Sans Lao, sans-serif"
+                    onClick={handleAddInsurance}
+                  >
+                    ເພີ່ມຂໍ້ມູນ
+                  </Button>
+                  {Array.isArray(formData.typeOfSecurity) &&
+                    formData.typeOfSecurity.length > 0 && (
+                      <Box overflowX="auto" mt={4}>
+                        <Table variant="simple" size="sm">
+                          <Thead>
+                            <Tr>
+                              <Th
+                                fontFamily="Noto Sans Lao, sans-serif"
+                                fontSize="sm"
+                                color="gray.600"
+                              >
+                                ປະເພດປະກັນສັງຄົມ
+                              </Th>
+                              <Th
+                                fontFamily="Noto Sans Lao, sans-serif"
+                                fontSize="sm"
+                                color="gray.600"
+                              >
+                                ອັດຕາຫັກປະກັນສັງຄົມ(%)
+                              </Th>
+                              <Th
+                                fontFamily="Noto Sans Lao, sans-serif"
+                                fontSize="sm"
+                                color="gray.600"
+                                width="100px"
+                              >
+                                ຈັດການ
+                              </Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {formData.typeOfSecurity.map((insurance, index) => (
+                              <Tr key={index}>
+                                <Td fontSize="sm">{insurance.type}</Td>
+                                <Td fontSize="sm">{insurance.rate}%</Td>
+                                <Td>
+                                  <IconButton
+                                    aria-label="Delete insurance"
+                                    icon={<DeleteIcon />}
+                                    colorScheme="red"
+                                    size="md"
+                                    fontSize="lg"
+                                    onClick={() =>
+                                      handleRemoveInsurance(insurance, index)
+                                    }
+                                  />
+                                </Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    )}
+                </Stack>
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
+
+          {/* Sticky Save Button */}
+          <Box
+            position="fixed"
+            bottom="0"
+            left="0"
+            right="0"
+            bg="white"
+            p={4}
+            shadow="lg"
+            zIndex="10"
+            display={{ base: "block", md: "none" }}
+          >
+            <Button
+              onClick={saveEmployeeData}
+              colorScheme="green"
+              size="lg"
+              w="full"
+              fontSize="md"
+              fontFamily="Noto Sans Lao, sans-serif"
+            >
+              ບັນທຶກ
+            </Button>
+          </Box>
+          <Flex justifyContent="flex-end" display={{ base: "none", md: "flex" }}>
+            <Button
+              onClick={saveEmployeeData}
+              colorScheme="green"
+              size="lg"
+              fontSize="md"
+              fontFamily="Noto Sans Lao, sans-serif"
+            >
+              ບັນທຶກ
+            </Button>
+          </Flex>
+
           {/* Edit Department Modal */}
-          <Modal isOpen={isOpen} onClose={onClose} size="lg">
+          <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            size={{ base: "full", md: "lg" }}
+          >
             <ModalOverlay />
             <ModalContent>
-              <ModalHeader>ແກ້ໄຂຂໍ້ມູນຕຳແໜ່ງ</ModalHeader>
+              <ModalHeader fontFamily="Noto Sans Lao, sans-serif" fontSize="lg">
+                ແກ້ໄຂຂໍ້ມູນຕຳແໜ່ງ
+              </ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <Stack spacing={4}>
                   <FormControl>
-                    <FormLabel>ຊື່ພະແນກ</FormLabel>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ຊື່ພະແນກ
+                    </FormLabel>
                     <Input
                       name="type"
+                      isDisabled
                       value={editedType}
                       onChange={(e) => setEditedType(e.target.value)}
                       placeholder="ປ້ອນຊື່ພະແນກ"
+                      fontSize="sm"
+                      bg="white"
+                      borderColor="gray.300"
                     />
                   </FormControl>
-
                   <FormControl>
-                    <FormLabel>ຕຳແໜ່ງທີ່ມີຢູ່</FormLabel>
+                    <FormLabel fontSize="md" color="gray.600">
+                      ຕຳແໜ່ງທີ່ມີຢູ່
+                    </FormLabel>
                     {editedPosition.map((pos, index) => (
                       <Flex key={index} mb={2} align="center">
                         <Input
@@ -328,458 +1001,47 @@ const EditdatabaseEmplyee = () => {
                           onChange={(e) =>
                             handlePositionChange(index, e.target.value)
                           }
+                          fontSize="sm"
+                          bg="white"
+                          borderColor="gray.300"
                           mr={2}
                         />
                         <IconButton
                           icon={<DeleteIcon />}
                           colorScheme="red"
-                          size="sm"
-                          // onClick={() => handleRemovePosition(index)}
+                          size="md"
+                          fontSize="lg"
                         />
                       </Flex>
                     ))}
                   </FormControl>
                 </Stack>
               </ModalBody>
-
               <ModalFooter>
-                <Button onClick={saveEdit} colorScheme="blue" mr={3}>
+                <Button
+                  onClick={saveEdit}
+                  colorScheme="blue"
+                  size="md"
+                  fontSize="md"
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  mr={3}
+                >
                   ບັນທຶກ
                 </Button>
-                <Button variant="ghost" onClick={onClose}>
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  fontSize="md"
+                  fontFamily="Noto Sans Lao, sans-serif"
+                >
                   ຍົກເລີກ
                 </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
-          <Heading
-            paddingTop={"30px"}
-            fontFamily="Noto Sans Lao, serif"
-            fontSize="xl"
-            fontWeight="bold"
-            mb={4}
-          >
-            ຖານຂໍ້ມູນ
-          </Heading>
-          <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-            {/* Department dropdown */}
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ພະແນກ</FormLabel>
-                <Select
-                  value={newDepartmentType}
-                  onChange={(e) => setNewDepartmentType(e.target.value)}
-                >
-                  <option value="">ເລືອກພະແນກ</option>
-                  {editDataOneid?.department?.map((data, index) => (
-                    <option key={index} value={data.type}>
-                      {data.type}
-                    </option>
-                  ))}
-                </Select>
-
-                {/* Input field that gets disabled when a department is selected */}
-
-                <Input
-                  mt={2}
-                  type="text"
-                  name="type"
-                  value={newDepartmentType}
-                  onChange={(e) => setNewDepartmentType(e.target.value)}
-                  placeholder="ໍຊື່"
-                  isDisabled={editDataOneid?.department?.some(
-                    (dept) => dept.type === newDepartmentType
-                  )}
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ລະຫັດພະແນກ</FormLabel>
-                <Input
-                  type="text"
-                  name="newDepartmenId"
-                  value={newDepartmenId}
-                  onChange={(e) => setNewDepartmenId(e.target.value)}
-                  placeholder="ລະຫັດພະແນກ"
-                />
-              </FormControl>
-            </GridItem>
-
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ຕຳແໜ່ງ</FormLabel>
-                <Input
-                  type="text"
-                  name="rate"
-                  value={newDepartmentRate}
-                  onChange={(e) => setNewDepartmentRate(e.target.value)}
-                  placeholder="ຊື່ຕຳແໜ່ງ"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ລະຫັດຕຳແໜ່ງ</FormLabel>
-                <Input
-                  type="text"
-                  name="newPosiontionId"
-                  value={newPosiontionId}
-                  onChange={(e) => setNewPosiontionId(e.target.value)}
-                  placeholder="ລະຫັດຕຳແໜ່ງ"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ລະດັບຂັ້ນ</FormLabel>
-                <Input
-                  type="text"
-                  name="levelPosiontion"
-                  value={levelPosiontion}
-                  onChange={(e) => setLevelPosiontion(e.target.value)}
-                  placeholder="ລະດັບຂັ້ນ"
-                />
-              </FormControl>
-              <Button onClick={handleAddDepartment} mt={2} colorScheme="blue">
-                ເພີ່ມ
-              </Button>
-            </GridItem>
-            <GridItem colSpan={3}>
-              {/* Table to display department and position */}
-              {formData?.department?.length > 0 && (
-                <Table variant="simple" mt={4}>
-                  <Thead>
-                    <Tr>
-                      <Th fontFamily="Noto Sans Lao, serif">ພະແນກ</Th>
-                      <Th fontFamily="Noto Sans Lao, serif">ຕຳແໜ່ງ</Th>
-                      <Th fontFamily="Noto Sans Lao, serif" width="100px">
-                        ຈັດການ
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {formData?.department.map((dept, index) => (
-                      <Tr key={index}>
-                        <Td>{dept.type}</Td>
-
-                        <Td>{dept.position.map((d) => d.type).join(", ")}</Td>
-                        <Td>
-                          <IconButton
-                            aria-label="Delete department"
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() => handleRemoveDepartment(index)}
-                          />
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-            </GridItem>
-
-            <GridItem colSpan={3}>
-              {/* Table to display department and position */}
-              {editDataOneid?.department?.length > 0 && (
-                <Table variant="simple" mt={4}>
-                  <Thead>
-                    <Tr>
-                      <Th fontFamily="Noto Sans Lao, serif">ພະແນກ</Th>
-                      <Th fontFamily="Noto Sans Lao, serif">ຕຳແໜ່ງ</Th>
-                      <Th fontFamily="Noto Sans Lao, serif" width="100px">
-                        ຈັດການ
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {editDataOneid?.department.map((dept, index) => (
-                      <Tr key={index}>
-                        <Td>{dept.type}</Td>
-
-                        <Td>{dept.position.map((d) => d.type).join(", ")}</Td>
-
-                        <Td>
-                          <IconButton
-                            aria-label="Delete department"
-                            icon={<EditIcon />}
-                            colorScheme="blue"
-                            size="sm"
-                            onClick={() => handleEditDepartment(dept, index)}
-                          />
-                        </Td>
-                        <Td>
-                          <IconButton
-                            aria-label="Delete department"
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() => handleRemoveDepartment(index)}
-                          />
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-            </GridItem>
-
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດເງິນລ່ວງເວລາຊົ່ວໂມງ</FormLabel>
-                <Input
-                  name="otTohour"
-                  value={formData.otTohour}
-                  onChange={handleInputChange}
-                  placeholder="เงินค่าชั่วโมง"
-                  type="number"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດເງິນລ່ວງເວລາເປັນ30ນາທີ</FormLabel>
-                <Input
-                  name="otminute"
-                  value={formData.otminute}
-                  onChange={handleInputChange}
-                  placeholder="ອັດຕາເງິນລ່ວງເວລາ"
-                  type="number"
-                />
-              </FormControl>
-            </GridItem>
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດເງິນມາຊ້າເວລາເປັນຊົ່ວໂມງ</FormLabel>
-                <Input
-                  name="latTohour"
-                  value={formData.latTohour}
-                  onChange={handleInputChange}
-                  placeholder="ເງິນຄ່າຊົ່ວໂມງ"
-                  type="number"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດເງິນມາຊ້າເວລາເປັນ30ນາທີ</FormLabel>
-                <Input
-                  name="latminute"
-                  value={formData.latminute}
-                  onChange={handleInputChange}
-                  placeholder="ອັດຕາເງິນລ່ວງເວລາ"
-                  type="number"
-                />
-              </FormControl>
-            </GridItem>
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດໂມງເຮັດວຽກ</FormLabel>
-                <Input
-                  name="startWorkTime"
-                  value={workTime}
-                  onChange={(e) => setWorkTime(e.target.value)}
-                  placeholder="ກຳນົດໂມງເຮັດວຽກ"
-                  type="time"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດໂມງເລີກວຽກ</FormLabel>
-                <Input
-                  value={outworkTime}
-                  onChange={(e) => setOutworkTime(e.target.value)}
-                  placeholder="ກຳນົດໂມງເລີກເຮັດວຽກ"
-                  type="time"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດຈັກຊົ່ວໂມງເຮັດວຽກ</FormLabel>
-                <Input
-                  name="standardTimeWorkHour"
-                  value={hours}
-                  disabled={true}
-                  placeholder="ກຳນົດຈັກຊົ່ວໂມງເຮັດວຽກ"
-                  type="number"
-                />
-              </FormControl>
-            </GridItem>
-            <GridItem>
-              <Flex gap={4} mb={4}>
-                <FormControl isRequired>
-                  <FormLabel>ປະເພດຄ່າຄອມມິຊັ່ນ</FormLabel>
-                  <Input
-                    value={commissionType}
-                    onChange={handleCommissionTypeChange}
-                    placeholder="ປະເພດຄ່າຄອມ"
-                  />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel>ອັດຕາ</FormLabel>
-                  <Input
-                    value={commissionRate}
-                    onChange={handleCommissionRateChange}
-                    placeholder="rate"
-                    type="number"
-                  />
-                </FormControl>
-              </Flex>
-            </GridItem>
-
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>ກຳນົດວັນພັກປະຈຳປີ</FormLabel>
-                <Input
-                  name="setAnnualHolidays"
-                  value={formData.setAnnualHolidays}
-                  onChange={handleInputChange}
-                  type="number"
-                  placeholder="ຈຳນວນວັນ"
-                />
-              </FormControl>
-            </GridItem>
-          </Grid>
-          {/* ///// */}
-
-          <Box mt={8}>
-            <Text fontSize="lg" fontWeight="medium" mb={4}>
-              ຂໍ້ມູນຈຳນວນລາພັກໄດ້
-            </Text>
-
-            <Flex gap={4} mb={4}>
-              <FormControl>
-                <FormLabel>ປະເພດລາພັກ</FormLabel>
-                <Input
-                  placeholder="ປະເພດລາພັກ"
-                  value={newcontent}
-                  name="newcontent"
-                  type="string"
-                  onChange={(e) => setNewcontent(e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>ຈຳນວນວັນພັກ</FormLabel>
-                <Input
-                  type="number"
-                  placeholder=""
-                  name="newCountholiday"
-                  value={newCountholiday}
-                  onChange={(e) => setNewCountholiday(e.target.value)}
-                />
-              </FormControl>
-
-              <Box alignSelf="flex-end" mb={1}>
-                <Button colorScheme="blue" onClick={handleContentHoliday}>
-                  ເພີ່ມ
-                </Button>
-              </Box>
-            </Flex>
-
-            {/* Table to display insurance types */}
-            {formData?.contentsOfHolidays?.length > 0 && (
-              <Table variant="simple" mt={4}>
-                <Thead>
-                  <Tr>
-                    <Th fontFamily="Noto Sans Lao, serif">ຈຳນວນວັນພັກ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif">ປະເພດວັນພັກ</Th>
-                    <Th fontFamily="Noto Sans Lao, serif" width="100px">
-                      ຈັດການ
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {formData?.contentsOfHolidays?.map((insurance, index) => (
-                    <Tr key={index}>
-                      <Td>{insurance.countday}</Td>
-                      <Td>{insurance.content}</Td>
-                      <Td>
-                        <IconButton
-                          aria-label="Delete insurance"
-                          icon={<DeleteIcon />}
-                          colorScheme="red"
-                          size="sm"
-                          onClick={() => handleRemoveContentHoliday(index)}
-                        />
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            )}
-          </Box>
-
-          {/* ///// */}
-          <Box mt={8}>
-            <Text fontSize="lg" fontWeight="medium" mb={4}>
-              ຂໍ້ມູນປະກັນສັງຄົມ
-            </Text>
-
-            <Flex gap={4} mb={4}>
-              <FormControl>
-                <FormLabel>ປະເພດປະກັນສັງຄົມ</FormLabel>
-                <Input
-                  placeholder="ປະເພດປະກັນສັງຄົມ"
-                  value={newInsuranceType}
-                  onChange={(e) => setNewInsuranceType(e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>ອັດຕາຫັກປະກັນສັງຄົມ</FormLabel>
-                <Input
-                  type="number"
-                  placeholder="%"
-                  value={newInsuranceRate}
-                  onChange={(e) => setNewInsuranceRate(e.target.value)}
-                />
-              </FormControl>
-
-              <Box alignSelf="flex-end" mb={1}>
-                <Button colorScheme="blue" onClick={handleAddInsurance}>
-                  ເພີ່ມຂໍ້ມູນ
-                </Button>
-              </Box>
-            </Flex>
-
-            {/* Table to display insurance types */}
-            {Array.isArray(formData.typeOfSecurity) &&
-              formData.typeOfSecurity.length > 0 && (
-                <Table variant="simple" mt={4}>
-                  <Thead>
-                    <Tr>
-                      <Th fontFamily="Noto Sans Lao, serif">
-                        ປະເພດປະກັນສັງຄົມ
-                      </Th>
-                      <Th fontFamily="Noto Sans Lao, serif">
-                        ອັດຕາຫັກປະກັນສັງຄົມ(%)
-                      </Th>
-                      <Th fontFamily="Noto Sans Lao, serif" width="100px">
-                        ຈັດການ
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {formData.typeOfSecurity.map((insurance, index) => (
-                      <Tr key={index}>
-                        <Td>{insurance.type}</Td>
-                        <Td>{insurance.rate}%</Td>
-                        <Td>
-                          <IconButton
-                            aria-label="Delete insurance"
-                            icon={<DeleteIcon />}
-                            colorScheme="red"
-                            size="sm"
-                            onClick={() =>
-                              handleRemoveInsurance(insurance, index)
-                            }
-                          />
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              )}
-          </Box>
-
-          <Flex justifyContent="flex-end" mt={8}>
-            <Button onClick={saveEmployeeData} colorScheme="green" size="lg">
-              ບັນທຶກ
-            </Button>
-          </Flex>
-        </Box>
+        </Stack>
       )}
-    </div>
+    </Box>
   );
 };
 

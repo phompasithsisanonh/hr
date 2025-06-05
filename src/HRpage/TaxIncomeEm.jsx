@@ -40,6 +40,10 @@ import {
   CloseButton,
   Center,
   Spinner,
+  Stack,
+  SimpleGrid,
+  useBreakpointValue,
+  Container,
 } from "@chakra-ui/react";
 import { AddIcon, DeleteIcon, EditIcon, InfoIcon } from "@chakra-ui/icons";
 import {
@@ -69,6 +73,13 @@ const TaxIncomeEm = () => {
   const dispatch = useDispatch();
   const toast = useToast();
 
+  // Responsive values
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const modalSize = useBreakpointValue({ base: "full", md: "lg" });
+  const tableSize = useBreakpointValue({ base: "sm", md: "md" });
+  const buttonSize = useBreakpointValue({ base: "sm", md: "md" });
+  const headingSize = useBreakpointValue({ base: "md", md: "lg" });
+
   // Form data for new or edited bracket
   const [formData, setFormData] = useState({
     id: Date.now(),
@@ -76,7 +87,9 @@ const TaxIncomeEm = () => {
     maxAmount: 0,
     rate: 0,
   });
-console.log(formData)
+
+  console.log(formData);
+
   // Handle notifications
   useEffect(() => {
     if (successMessage) {
@@ -123,6 +136,7 @@ console.log(formData)
     });
     setFormError("");
   };
+
   // Validate tax bracket before saving
   const validateTaxBracket = () => {
     // Check for empty values
@@ -142,17 +156,16 @@ console.log(formData)
 
     // Check if min is greater than max
     if (formData.minAmount >= formData.maxAmount && formData.maxAmount !== 0) {
-      setFormError("ຄ່າສູງສຸດດຫ້າມສູງກວ່າຄ່າຕໍ່າສຸດ");
+      setFormError("ຄ່າສູງສຸດຕ້ອງສູງກວ່າຄ່າຕໍ່າສຸດ");
       return false;
     }
 
     // Check for valid rate
     const prevTax = getTaxeis
-      .filter((item) => item.maxAmount <= formData.minAmount) /// 10.000.000 <= 10.000.000 true
-      .sort((a, b) => b.maxAmount - a.maxAmount)[0]; //  sort
+      .filter((item) => item.maxAmount <= formData.minAmount)
+      .sort((a, b) => b.maxAmount - a.maxAmount)[0];
     if (prevTax) {
       if (formData.rate <= prevTax.rate) {
-        ///3<10  ຫ້າມຕຳກວ່າ ຕ້ອງສູງກວ່າ
         setFormError(`ອັດຕາອາກອນໃໝ່ຕ້ອງສູງກວ່າ ${prevTax.rate}`);
         return false;
       }
@@ -258,281 +271,429 @@ console.log(formData)
     return tax;
   };
 
+  // Mobile table row component
+  const MobileTableRow = ({ bracket, index }) => (
+    <Box
+      p={4}
+      borderWidth="1px"
+      borderRadius="md"
+      mb={3}
+      bg="white"
+      _hover={{ bg: "gray.50" }}
+    >
+      <VStack align="stretch" spacing={3}>
+        <Flex justify="space-between" align="center">
+          <Badge colorScheme="blue" borderRadius="full" px={2}>
+            ລະດັບ {index + 1}
+          </Badge>
+          <HStack spacing={2}>
+            <Tooltip label="ແກ້ໄຂ">
+              <IconButton
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+                icon={<EditIcon />}
+                onClick={() => openEditModal(bracket)}
+              />
+            </Tooltip>
+            <Tooltip label="ລົບ">
+              <IconButton
+                colorScheme="red"
+                variant="outline"
+                size="sm"
+                icon={<DeleteIcon />}
+                onClick={() => openDeleteModal(bracket)}
+              />
+            </Tooltip>
+          </HStack>
+        </Flex>
+        
+        <Box>
+          <Text fontSize="sm" color="gray.600" mb={1}>
+            ຊ່ວງລາຍໄດ້
+          </Text>
+          <Text fontWeight="medium">
+            {formatNumber(bracket.minAmount)} - {formatNumber(bracket.maxAmount)} ກີບ
+          </Text>
+        </Box>
+        
+        <Box>
+          <Text fontSize="sm" color="gray.600" mb={1}>
+            ອັດຕາ
+          </Text>
+          <Badge colorScheme="green" fontSize="0.9em">
+            {bracket.rate}%
+          </Badge>
+        </Box>
+      </VStack>
+    </Box>
+  );
+
   return (
-    <Box p={6} borderRadius="lg" boxShadow="md" bg="white">
-      {/* Header */}
-      <Flex justify="space-between" align="center" mb={6}>
-        <Heading size="lg" fontFamily="Noto Sans Lao, serif">
-          ການຈັດການຖານຄິດໄລ່ອາກອນລາຍໄດ້
-        </Heading>
-        <Tooltip label="ເພີ່ມຊ່ວງອາກອນໃໝ່">
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="blue"
-            onClick={openAddModal}
-            size="md"
+    <Container maxW="7xl" px={{ base: 4, md: 6 }}>
+      <Box p={{ base: 4, md: 6 }} borderRadius="lg" boxShadow="md" bg="white">
+        {/* Header */}
+        <Stack
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "stretch", md: "center" }}
+          mb={6}
+          spacing={4}
+        >
+          <Heading 
+            size={headingSize} 
+            fontFamily="Noto Sans Lao, serif"
+            textAlign={{ base: "center", md: "left" }}
           >
-            ເພີ່ມຊ່ວງອາກອນ
-          </Button>
-        </Tooltip>
-      </Flex>
-
-      {/* Main content */}
-      <Card variant="outline" mb={6}>
-        <CardHeader bg="gray.50" py={3}>
-          <Heading size="md" fontFamily="Noto Sans Lao, serif">
-            ຕາຕະລາງອາກອນລາຍໄດ້
+            ການຈັດການຖານຄິດໄລ່ອາກອນລາຍໄດ້
           </Heading>
-        </CardHeader>
-        <CardBody p={0}>
-          {loader ? (
-            <Flex justify="center" align="center" height="100vh">
-              <Center>
-                <Spinner size="xl" thickness="4px" speed="0.65s" />
-                <Text ml={4} fontSize="lg">
-                  ກຳລັງໂຫຼດຂໍ້ມູນ...
-                </Text>
-              </Center>
-            </Flex>
-          ) : getTaxeis.length === 0 ? (
-            <Alert status="info" variant="subtle">
-              <AlertIcon />
-              <AlertTitle>ບໍ່ມີຂໍ້ມູນ</AlertTitle>
-              <AlertDescription>
-                ກະລຸນາເພີ່ມຊ່ວງອາກອນໃໝ່ເພື່ອເລີ່ມຕົ້ນ
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Table variant="simple">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th fontFamily="Noto Sans Lao, serif" width="10%">
-                    ລະດັບ
-                  </Th>
-                  <Th fontFamily="Noto Sans Lao, serif" width="40%">
-                    ຊ່ວງລາຍໄດ້ (ກີບ)
-                  </Th>
-                  <Th fontFamily="Noto Sans Lao, serif" width="20%">
-                    ອັດຕາ
-                  </Th>
-                  <Th fontFamily="Noto Sans Lao, serif" width="30%">
-                    ຈັດການ
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {getTaxeis.map((bracket, index) => (
-                  <Tr key={index} _hover={{ bg: "gray.50" }}>
-                    <Td>
-                      <Badge colorScheme="blue" borderRadius="full" px={2}>
-                        {index + 1}
-                      </Badge>
-                    </Td>
-                    <Td>
-                      {formatNumber(bracket.minAmount)} -{" "}
-                      {formatNumber(bracket.maxAmount)}
-                    </Td>
-                    <Td>
-                      <Badge colorScheme="green" fontSize="0.9em">
-                        {bracket.rate}%
-                      </Badge>
-                    </Td>
-                    <Td>
-                      <HStack spacing={2}>
-                        <Tooltip label="ແກ້ໄຂ">
-                          <IconButton
-                            colorScheme="blue"
-                            variant="outline"
-                            size="sm"
-                            icon={<EditIcon />}
-                            onClick={() => openEditModal(bracket)}
-                          />
-                        </Tooltip>
-                        <Tooltip label="ລົບ">
-                          <IconButton
-                            colorScheme="red"
-                            variant="outline"
-                            size="sm"
-                            icon={<DeleteIcon />}
-                            onClick={() => openDeleteModal(bracket)}
-                          />
-                        </Tooltip>
-                      </HStack>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+          <Tooltip label="ເພີ່ມຊ່ວງອາກອນໃໝ່">
+            <Button
+              leftIcon={<AddIcon />}
+              colorScheme="blue"
+              onClick={openAddModal}
+              size={buttonSize}
+              width={{ base: "full", md: "auto" }}
+            >
+              ເພີ່ມຊ່ວງອາກອນ
+            </Button>
+          </Tooltip>
+        </Stack>
 
-      {/* Tax Example Card */}
-      {getTaxeis.length > 0 && (
+        {/* Main content */}
         <Card variant="outline" mb={6}>
-          <CardHeader bg="blue.50" py={3}>
-            <Heading size="md" fontFamily="Noto Sans Lao, serif">
-              <Flex align="center">
-                <InfoIcon mr={2} />
-                ຕົວຢ່າງການຄິດໄລ່
-              </Flex>
+          <CardHeader bg="gray.50" py={3}>
+            <Heading 
+              size={{ base: "sm", md: "md" }} 
+              fontFamily="Noto Sans Lao, serif"
+              textAlign={{ base: "center", md: "left" }}
+            >
+              ຕາຕະລາງອາກອນລາຍໄດ້
             </Heading>
           </CardHeader>
-          <CardBody>
-            <Flex direction={{ base: "column", md: "row" }} gap={4}>
-              <Box flex={1} p={4} borderWidth="1px" borderRadius="md">
-                <Heading size="sm" mb={2} fontFamily="Noto Sans Lao, serif">
-                  ລາຍໄດ້ 2,000,000 ກີບ
-                </Heading>
-                <Text>
-                  ອາກອນທີ່ຕ້ອງຈ່າຍ: {formatNumber(calculateTaxExample(2000000))}{" "}
-                  ກີບ
-                </Text>
+          <CardBody p={{ base: 2, md: 4 }}>
+            {loader ? (
+              <Flex justify="center" align="center" height="200px">
+                <Center>
+                  <VStack spacing={4}>
+                    <Spinner size="xl" thickness="4px" speed="0.65s" />
+                    <Text fontSize={{ base: "md", md: "lg" }}>
+                      ກຳລັງໂຫຼດຂໍ້ມູນ...
+                    </Text>
+                  </VStack>
+                </Center>
+              </Flex>
+            ) : getTaxeis.length === 0 ? (
+              <Alert status="info" variant="subtle" borderRadius="md">
+                <AlertIcon />
+                <Box>
+                  <AlertTitle fontFamily="Noto Sans Lao, serif">ບໍ່ມີຂໍ້ມູນ</AlertTitle>
+                  <AlertDescription fontFamily="Noto Sans Lao, serif">
+                    ກະລຸນາເພີ່ມຊ່ວງອາກອນໃໝ່ເພື່ອເລີ່ມຕົ້ນ
+                  </AlertDescription>
+                </Box>
+              </Alert>
+            ) : isMobile ? (
+              // Mobile layout with cards
+              <VStack spacing={3} align="stretch">
+                {getTaxeis.map((bracket, index) => (
+                  <MobileTableRow 
+                    key={index} 
+                    bracket={bracket} 
+                    index={index} 
+                  />
+                ))}
+              </VStack>
+            ) : (
+              // Desktop table layout
+              <Box overflowX="auto">
+                <Table variant="simple" size={tableSize}>
+                  <Thead bg="gray.50">
+                    <Tr>
+                      <Th fontFamily="Noto Sans Lao, serif" width="10%">
+                        ລະດັບ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" width="40%">
+                        ຊ່ວງລາຍໄດ້ (ກີບ)
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" width="20%">
+                        ອັດຕາ
+                      </Th>
+                      <Th fontFamily="Noto Sans Lao, serif" width="30%">
+                        ຈັດການ
+                      </Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {getTaxeis.map((bracket, index) => (
+                      <Tr key={index} _hover={{ bg: "gray.50" }}>
+                        <Td>
+                          <Badge colorScheme="blue" borderRadius="full" px={2}>
+                            {index + 1}
+                          </Badge>
+                        </Td>
+                        <Td fontSize={{ base: "sm", md: "md" }}>
+                          {formatNumber(bracket.minAmount)} -{" "}
+                          {formatNumber(bracket.maxAmount)}
+                        </Td>
+                        <Td>
+                          <Badge colorScheme="green" fontSize="0.9em">
+                            {bracket.rate}%
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <HStack spacing={2}>
+                            <Tooltip label="ແກ້ໄຂ">
+                              <IconButton
+                                colorScheme="blue"
+                                variant="outline"
+                                size="sm"
+                                icon={<EditIcon />}
+                                onClick={() => openEditModal(bracket)}
+                              />
+                            </Tooltip>
+                            <Tooltip label="ລົບ">
+                              <IconButton
+                                colorScheme="red"
+                                variant="outline"
+                                size="sm"
+                                icon={<DeleteIcon />}
+                                onClick={() => openDeleteModal(bracket)}
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
               </Box>
-              <Box flex={1} p={4} borderWidth="1px" borderRadius="md">
-                <Heading size="sm" mb={2} fontFamily="Noto Sans Lao, serif">
-                  ລາຍໄດ້ 5,000,000 ກີບ
-                </Heading>
-                <Text>
-                  ອາກອນທີ່ຕ້ອງຈ່າຍ: {formatNumber(calculateTaxExample(5000000))}{" "}
-                  ກີບ
-                </Text>
-              </Box>
-              <Box flex={1} p={4} borderWidth="1px" borderRadius="md">
-                <Heading size="sm" mb={2} fontFamily="Noto Sans Lao, serif">
-                  ລາຍໄດ້ 10,000,000 ກີບ
-                </Heading>
-                <Text>
-                  ອາກອນທີ່ຕ້ອງຈ່າຍ:{" "}
-                  {formatNumber(calculateTaxExample(10000000))} ກີບ
-                </Text>
-              </Box>
-            </Flex>
+            )}
           </CardBody>
         </Card>
-      )}
 
-      {/* Add/Edit Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader fontFamily="Noto Sans Lao, serif">
-            {isNewBracketMode ? "ເພີ່ມຊ່ວງອາກອນໃໝ່" : "ແກ້ໄຂຊ່ວງອາກອນ"}
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {formError && (
-              <Alert status="error" mb={4} borderRadius="md">
+        {/* Tax Example Card */}
+        {getTaxeis.length > 0 && (
+          <Card variant="outline" mb={6}>
+            <CardHeader bg="blue.50" py={3}>
+              <Heading 
+                size={{ base: "sm", md: "md" }} 
+                fontFamily="Noto Sans Lao, serif"
+                textAlign={{ base: "center", md: "left" }}
+              >
+                <Flex align="center" justify={{ base: "center", md: "flex-start" }}>
+                  <InfoIcon mr={2} />
+                  ຕົວຢ່າງການຄິດໄລ່
+                </Flex>
+              </Heading>
+            </CardHeader>
+            <CardBody p={{ base: 3, md: 4 }}>
+              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                  <Heading 
+                    size="sm" 
+                    mb={2} 
+                    fontFamily="Noto Sans Lao, serif"
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ລາຍໄດ້ 2,000,000 ກີບ
+                  </Heading>
+                  <Text 
+                    fontSize={{ base: "sm", md: "md" }}
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ອາກອນທີ່ຕ້ອງຈ່າຍ: {formatNumber(calculateTaxExample(2000000))}{" "}
+                    ກີບ
+                  </Text>
+                </Box>
+                <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                  <Heading 
+                    size="sm" 
+                    mb={2} 
+                    fontFamily="Noto Sans Lao, serif"
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ລາຍໄດ້ 5,000,000 ກີບ
+                  </Heading>
+                  <Text 
+                    fontSize={{ base: "sm", md: "md" }}
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ອາກອນທີ່ຕ້ອງຈ່າຍ: {formatNumber(calculateTaxExample(5000000))}{" "}
+                    ກີບ
+                  </Text>
+                </Box>
+                <Box p={4} borderWidth="1px" borderRadius="md" bg="white">
+                  <Heading 
+                    size="sm" 
+                    mb={2} 
+                    fontFamily="Noto Sans Lao, serif"
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ລາຍໄດ້ 10,000,000 ກີບ
+                  </Heading>
+                  <Text 
+                    fontSize={{ base: "sm", md: "md" }}
+                    textAlign={{ base: "center", md: "left" }}
+                  >
+                    ອາກອນທີ່ຕ້ອງຈ່າຍ:{" "}
+                    {formatNumber(calculateTaxExample(10000000))} ກີບ
+                  </Text>
+                </Box>
+              </SimpleGrid>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Add/Edit Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
+          <ModalOverlay />
+          <ModalContent mx={{ base: 4, md: 0 }}>
+            <ModalHeader fontFamily="Noto Sans Lao, serif" fontSize={{ base: "lg", md: "xl" }}>
+              {isNewBracketMode ? "ເພີ່ມຊ່ວງອາກອນໃໝ່" : "ແກ້ໄຂຊ່ວງອາກອນ"}
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody px={{ base: 4, md: 6 }}>
+              {formError && (
+                <Alert status="error" mb={4} borderRadius="md">
+                  <AlertIcon />
+                  <AlertDescription>{formError}</AlertDescription>
+                  <CloseButton
+                    position="absolute"
+                    right="8px"
+                    top="8px"
+                    onClick={() => setFormError("")}
+                  />
+                </Alert>
+              )}
+
+              <VStack spacing={4}>
+                <FormControl>
+                  <FormLabel fontFamily="Noto Sans Lao, serif" fontSize={{ base: "sm", md: "md" }}>
+                    ຄ່າຕໍ່າສຸດ (ກີບ)
+                  </FormLabel>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="minAmount"
+                      value={formData.minAmount}
+                      onChange={handleInputChange}
+                      disabled={isNewBracketMode && getTaxeis.length > 0}
+                      size={{ base: "md", md: "lg" }}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel fontFamily="Noto Sans Lao, serif" fontSize={{ base: "sm", md: "md" }}>
+                    ຄ່າສູງສຸດ (ກີບ)
+                  </FormLabel>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="maxAmount"
+                      value={formData.maxAmount}
+                      onChange={handleInputChange}
+                      size={{ base: "md", md: "lg" }}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel fontFamily="Noto Sans Lao, serif" fontSize={{ base: "sm", md: "md" }}>
+                    ອັດຕາອາກອນ (%)
+                  </FormLabel>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="rate"
+                      value={formData.rate}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      max="100"
+                      size={{ base: "md", md: "lg" }}
+                    />
+                    <InputLeftAddon children="%" />
+                  </InputGroup>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter px={{ base: 4, md: 6 }}>
+              <Stack direction={{ base: "column", md: "row" }} spacing={3} width="full">
+                <Button 
+                  variant="outline" 
+                  onClick={onClose}
+                  width={{ base: "full", md: "auto" }}
+                  order={{ base: 2, md: 1 }}
+                >
+                  ຍົກເລີກ
+                </Button>
+                <Button 
+                  colorScheme="blue" 
+                  onClick={handleSave}
+                  width={{ base: "full", md: "auto" }}
+                  order={{ base: 1, md: 2 }}
+                >
+                  {isNewBracketMode ? "ເພີ່ມ" : "ບັນທຶກການປ່ຽນແປງ"}
+                </Button>
+              </Stack>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered size={modalSize}>
+          <ModalOverlay />
+          <ModalContent mx={{ base: 4, md: 0 }}>
+            <ModalHeader fontFamily="Noto Sans Lao, serif" fontSize={{ base: "lg", md: "xl" }}>
+              ຢືນຢັນການລົບ
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody px={{ base: 4, md: 6 }}>
+              <Alert status="warning" variant="subtle" borderRadius="md">
                 <AlertIcon />
-                <AlertDescription>{formError}</AlertDescription>
-                <CloseButton
-                  position="absolute"
-                  right="8px"
-                  top="8px"
-                  onClick={() => setFormError("")}
-                />
+                <Box>
+                  <AlertTitle mb={1} fontFamily="Noto Sans Lao, serif">
+                    ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບຊ່ວງອາກອນນີ້?
+                  </AlertTitle>
+                  <AlertDescription fontFamily="Noto Sans Lao, serif" fontSize={{ base: "sm", md: "md" }}>
+                    {selectedBracket && (
+                      <>
+                        ຊ່ວງ {formatNumber(selectedBracket.minAmount)} -{" "}
+                        {formatNumber(selectedBracket.maxAmount)} ກີບ (ອັດຕາ{" "}
+                        {selectedBracket.rate}%)
+                      </>
+                    )}
+                  </AlertDescription>
+                </Box>
               </Alert>
-            )}
+            </ModalBody>
 
-            <VStack spacing={4}>
-              <FormControl>
-                <FormLabel fontFamily="Noto Sans Lao, serif">
-                  ຄ່າຕໍ່າສຸດ (ກີບ)
-                </FormLabel>
-                <InputGroup>
-                  <Input
-                    type="number"
-                    name="minAmount"
-                    value={formData.minAmount}
-                    onChange={handleInputChange}
-                    disabled={isNewBracketMode && getTaxeis.length > 0}
-                  />
-                </InputGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel fontFamily="Noto Sans Lao, serif">
-                  ຄ່າສູງສຸດ (ກີບ)
-                </FormLabel>
-                <InputGroup>
-                  <Input
-                    type="number"
-                    name="maxAmount"
-                    value={formData.maxAmount}
-                    onChange={handleInputChange}
-                  />
-                </InputGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel fontFamily="Noto Sans Lao, serif">
-                  ອັດຕາອາກອນ (%)
-                </FormLabel>
-                <InputGroup>
-                  <Input
-                    type="number"
-                    name="rate"
-                    value={formData.rate}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    max="100"
-                  />
-                  <InputLeftAddon children="%" />
-                </InputGroup>
-              </FormControl>
-            </VStack>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button variant="outline" mr={3} onClick={onClose}>
-              ຍົກເລີກ
-            </Button>
-            <Button colorScheme="blue" onClick={handleSave}>
-              {isNewBracketMode ? "ເພີ່ມ" : "ບັນທຶກການປ່ຽນແປງ"}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered size="md">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader fontFamily="Noto Sans Lao, serif">
-            ຢືນຢັນການລົບ
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Alert status="warning" variant="subtle" borderRadius="md">
-              <AlertIcon />
-              <Box>
-                <AlertTitle mb={1} fontFamily="Noto Sans Lao, serif">
-                  ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບຊ່ວງອາກອນນີ້?
-                </AlertTitle>
-                <AlertDescription fontFamily="Noto Sans Lao, serif">
-                  {selectedBracket && (
-                    <>
-                      ຊ່ວງ {formatNumber(selectedBracket.minAmount)} -{" "}
-                      {formatNumber(selectedBracket.maxAmount)} ກີບ (ອັດຕາ{" "}
-                      {selectedBracket.rate}%)
-                    </>
-                  )}
-                </AlertDescription>
-              </Box>
-            </Alert>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button variant="outline" mr={3} onClick={onDeleteClose}>
-              ຍົກເລີກ
-            </Button>
-            <Button colorScheme="red" onClick={handleDelete}>
-              ລົບ
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+            <ModalFooter px={{ base: 4, md: 6 }}>
+              <Stack direction={{ base: "column", md: "row" }} spacing={3} width="full">
+                <Button 
+                  variant="outline" 
+                  onClick={onDeleteClose}
+                  width={{ base: "full", md: "auto" }}
+                  order={{ base: 2, md: 1 }}
+                >
+                  ຍົກເລີກ
+                </Button>
+                <Button 
+                  colorScheme="red" 
+                  onClick={handleDelete}
+                  width={{ base: "full", md: "auto" }}
+                  order={{ base: 1, md: 2 }}
+                >
+                  ລົບ
+                </Button>
+              </Stack>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </Box>
+    </Container>
   );
 };
 

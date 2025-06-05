@@ -37,6 +37,8 @@ import {
   Alert,
   AlertIcon,
   useBreakpointValue,
+  HStack,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -89,21 +91,25 @@ const CalculateSalary = () => {
     month: 0,
     year: 0,
     benitfits: [],
+    calculateTimeLateHour: 0,
+    calculateTimeLateMinute: 0,
+    calculateTimeOThour: 0,
+    calculateTimeOTminute: 0,
   });
 
   // UI Colors
   const cardBg = useColorModeValue("white", "gray.800");
-  const summaryCardBg = useColorModeValue("blue.50", "blue.900");
-  const headerColor = useColorModeValue("blue.600", "blue.300");
-  const inputBg = useColorModeValue("gray.50", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const headerColor = useColorModeValue("blue.700", "blue.200");
+  const inputBg = useColorModeValue("gray.100", "gray.600");
+  const borderColor = useColorModeValue("gray.300", "gray.500");
 
   // Responsive layout
   const columnTemplate = useBreakpointValue({ base: "1fr", md: "1fr 1fr" });
-  const stackDirection = useBreakpointValue({ base: "column", md: "row" });
-  const buttonSize = useBreakpointValue({ base: "md", md: "lg" });
-  const headerSize = useBreakpointValue({ base: "md", md: "xl" });
-  const cardSpacing = useBreakpointValue({ base: 4, md: 6 });
+  const stackDirection = useBreakpointValue({ base: "column", sm: "row" });
+  const buttonSize = useBreakpointValue({ base: "sm", md: "md" });
+  const headerSize = useBreakpointValue({ base: "lg", md: "xl" });
+  const cardSpacing = useBreakpointValue({ base: 2, md: 4 });
+  const fontSize = useBreakpointValue({ base: "sm", md: "md" });
 
   const hasSalary = getSalaries.some(
     (salary) => Number(salary?.month) === Number(montheris)
@@ -117,7 +123,7 @@ const CalculateSalary = () => {
     type: "income",
   });
 
-  // Compute getsalary with useMemo to prevent re-computation on every render
+  // Compute getsalary with useMemo
   const getsalary = useMemo(() => {
     return getAllSalaries?.filter(
       (item) =>
@@ -126,6 +132,7 @@ const CalculateSalary = () => {
         item.year === Number(yearseris)
     );
   }, [getAllSalaries, selectedEmployee, montheris, yearseris]);
+
   const handleSelect = (e) => {
     setSelectedEmployee(e.target.value);
     setIncomeItems({
@@ -138,22 +145,22 @@ const CalculateSalary = () => {
       year: 0,
     });
   };
-console.log(incomeItems)
-  // Data fetching on component mount
+
+  // Data fetching
   useEffect(() => {
     dispatch(get_all_user());
-    dispatch(getAllSalary()); ////success for print
+    dispatch(getAllSalary());
     dispatch(getTax());
     dispatch(getSalary());
   }, [dispatch]);
 
-  // Reset dataIncome and dataExpense when selectedEmployee changes
+  // Reset dataIncome and dataExpense
   useEffect(() => {
     setDataIncome([]);
     setDataExpense([]);
   }, [selectedEmployee]);
 
-  // Update incomeItems when getsalary changes
+  // Update incomeItems
   useEffect(() => {
     if (getsalary?.length > 0) {
       setIncomeItems({
@@ -164,7 +171,11 @@ console.log(incomeItems)
         personalInfo: getsalary[0]?.personalInfo || [],
         month: getsalary[0]?.month || 0,
         year: getsalary[0]?.year || 0,
-        benitfits: getsalary?.bennifits || 0,
+        calculateTimeLateHour: getsalary[0]?.calculateTimeLateHour,
+        calculateTimeLateMinute: getsalary[0]?.calculateTimeLateMinute,
+        calculateTimeOThour: getsalary[0]?.calculateTimeOThour,
+        calculateTimeOTminute: getsalary[0]?.calculateTimeOTminute,
+        benitfits: getsalary[0]?.bennifits || [],
       });
     }
   }, [getsalary]);
@@ -211,13 +222,17 @@ console.log(incomeItems)
   // Salary calculations
   let NetIncome = 0;
   let NetExpense = 0;
-
+  let NetBennifits = 0;
   dataIncome.forEach((item) => {
     NetIncome += parseFloat(item.amount) || 0;
   });
 
   dataExpense.forEach((item) => {
     NetExpense += parseFloat(item.amount) || 0;
+  });
+
+  incomeItems?.benitfits?.forEach((item) => {
+    NetBennifits += parseFloat(item.amount) || 0;
   });
 
   let Net = 0;
@@ -231,14 +246,19 @@ console.log(incomeItems)
     }
   }
 
-  Net = incomeItems?.salaryfirst + NetIncome - NetExpense - socialSecurityMoney;
+  Net =
+    incomeItems?.salaryfirst +
+    NetIncome +
+    NetBennifits -
+    NetExpense -
+    socialSecurityMoney;
 
   // Find tax bracket
   const matchedRange = getTaxeis?.find(
     (range) => Net >= range?.minAmount && Net < range?.maxAmount
   );
 
-  // Calculate tax (progressive tax calculation)
+  // Calculate tax
   let taxpay = 0;
   if (getTaxeis) {
     for (const bracket of getTaxeis) {
@@ -281,9 +301,12 @@ console.log(incomeItems)
       expenseItems: dataExpense,
       netIncome: NetIncome,
       netExpense: NetExpense,
+      NetBennifits: NetBennifits,
       socialSecurity: getsalary[0]?.socialSecurity || [],
       socialSecurityMoney: socialSecurityMoney,
       tax: taxpay,
+      totalTimeLate : (incomeItems?.calculateTimeLateHour +  incomeItems?.calculateTimeLateMinute),
+      totalTimeOt : (incomeItems?.calculateTimeOThour +  incomeItems?.calculateTimeOTminute),
       netSalary: Net - taxpay,
       taxBracket: matchedRange
         ? {
@@ -303,7 +326,7 @@ console.log(incomeItems)
 
   const months = Array.from({ length: 12 }, (_, index) => index + 1);
 
-  ///successMessage errorMessage
+  // Handle messages
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);
@@ -319,10 +342,15 @@ console.log(incomeItems)
   // Loading state
   if (userLoading || salaryLoading) {
     return (
-      <Flex justify="center" align="center" height="100vh">
-        <Center>
-          <Spinner size="xl" thickness="4px" speed="0.65s" color="blue.500" />
-          <Text ml={4} fontSize="lg" fontFamily="Noto Sans Lao, serif">
+      <Flex justify="center" align="center" minH="100vh">
+        <Center flexDirection="column">
+          <Spinner size="lg" thickness="4px" speed="0.65s" color="blue.500" />
+          <Text
+            ml={4}
+            fontSize={fontSize}
+            fontFamily="Noto Sans Lao, sans-serif"
+            mt={2}
+          >
             ກຳລັງໂຫຼດຂໍ້ມູນ...
           </Text>
         </Center>
@@ -331,40 +359,47 @@ console.log(incomeItems)
   }
 
   return (
-    <Container maxW="container.xl" px={{ base: 2, md: 6 }}>
+    <Container maxW="container.xl" px={{ base: 2, md: 4 }}>
       <MotionBox
         w="full"
         mx="auto"
-        py={8}
-        px={{ base: 4, md: 8 }}
+        py={6}
+        px={{ base: 3, md: 6 }}
         bg={cardBg}
-        borderRadius="xl"
-        boxShadow="lg"
-        borderWidth="1px"
+        bgOpacity={0.95}
+        borderRadius="2xl"
+        boxShadow="md"
+        borderWidth="1.5px"
         borderColor={borderColor}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
       >
         <MotionFlex
           direction="column"
           align="center"
-          mb={8}
+          mb={6}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           <Heading
-            fontFamily="Noto Sans Lao, serif"
+            fontFamily="Noto Sans Lao, sans-serif"
             as="h1"
             size={headerSize}
             textAlign="center"
             color={headerColor}
             mb={2}
+            letterSpacing="0.5px"
           >
             ຄິດໄລ່ເງິນເດືອນ
           </Heading>
-          <Divider width="100px" borderWidth="2px" borderColor={headerColor} />
+          <Divider
+            width="100px"
+            borderWidth="1.5px"
+            borderColor={headerColor}
+            my={2}
+          />
         </MotionFlex>
 
         {/* Employee Selection */}
@@ -372,14 +407,17 @@ console.log(incomeItems)
           mb={cardSpacing}
           variant="outline"
           borderColor={borderColor}
-          boxShadow="sm"
+          boxShadow="md"
+          borderRadius="2xl"
         >
-          <CardBody>
-            <Stack direction={stackDirection} spacing={4}>
+          <CardBody py={4}>
+            <Stack direction={stackDirection} spacing={3} alignItems="stretch">
               <FormControl>
                 <FormLabel
                   fontWeight="medium"
-                  fontFamily="Noto Sans Lao, serif"
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  fontSize={fontSize}
+                  mb={1}
                 >
                   ເລືອກພະນັກງານ
                 </FormLabel>
@@ -389,8 +427,13 @@ console.log(incomeItems)
                   placeholder="Select employee"
                   isDisabled={!get_all_user_em?.length}
                   bg={inputBg}
-                  borderRadius="md"
-                  height="42px"
+                  borderRadius="lg"
+                  height={{ base: "36px", md: "42px" }}
+                  fontSize={fontSize}
+                  _focus={{
+                    borderColor: "blue.400",
+                    boxShadow: "0 0 0 1px blue.400",
+                  }}
                 >
                   {get_all_user_em?.map((employee) => (
                     <option
@@ -403,15 +446,24 @@ console.log(incomeItems)
                 </Select>
               </FormControl>
               <FormControl>
-                <FormLabel fontFamily="Noto Sans Lao, serif">
+                <FormLabel
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  fontSize={fontSize}
+                  mb={1}
+                >
                   ເລືອກເດືອນ
                 </FormLabel>
                 <Select
                   value={montheris}
                   onChange={(e) => setMontheris(e.target.value)}
                   bg={inputBg}
-                  borderRadius="md"
-                  height="42px"
+                  borderRadius="lg"
+                  height={{ base: "36px", md: "42px" }}
+                  fontSize={fontSize}
+                  _focus={{
+                    borderColor: "blue.400",
+                    boxShadow: "0 0 0 1px blue.400",
+                  }}
                 >
                   <option value="">ເລືອກເດືອນ</option>
                   {months.map((item, index) => (
@@ -422,13 +474,24 @@ console.log(incomeItems)
                 </Select>
               </FormControl>
               <FormControl>
-                <FormLabel fontFamily="Noto Sans Lao, serif">ເລືອກປິ</FormLabel>
+                <FormLabel
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  fontSize={fontSize}
+                  mb={1}
+                >
+                  ເລືອກປິ
+                </FormLabel>
                 <Select
                   value={yearseris}
                   onChange={(e) => setYearseris(e.target.value)}
                   bg={inputBg}
-                  borderRadius="md"
-                  height="42px"
+                  borderRadius="lg"
+                  height={{ base: "36px", md: "42px" }}
+                  fontSize={fontSize}
+                  _focus={{
+                    borderColor: "blue.400",
+                    boxShadow: "0 0 0 1px blue.400",
+                  }}
                 >
                   <option value="">ເລືອກປິ</option>
                   {year.map((item, index) => (
@@ -446,145 +509,289 @@ console.log(incomeItems)
           <MotionBox
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
-            {/* Salary Information */}
             <Card
               mb={cardSpacing}
               variant="outline"
               borderColor={borderColor}
-              boxShadow="sm"
+              boxShadow="md"
+              borderRadius="2xl"
             >
-              <CardHeader pb={0} borderTopRadius="md">
+              <CardHeader pb={2} borderTopRadius="2xl">
                 <Heading
-                  fontFamily="Noto Sans Lao, serif"
-                  size="md"
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  size={{ base: "sm", md: "md" }}
                   color={headerColor}
+                  textAlign="left"
                 >
                   ຂໍ້ມູນເງິນເດືອນ
                 </Heading>
               </CardHeader>
-              <CardBody>
-                <Grid templateColumns={columnTemplate} gap={6}>
-                  {/* Base Salary Info */}
+
+              <CardBody py={4}>
+                <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6}>
+                  {/* รายได้ */}
                   <VStack align="start" spacing={3}>
-                    <Text fontFamily="Noto Sans Lao, serif" fontWeight="medium">
+                    <Heading
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize="md"
+                      color={headerColor}
+                    >
+                      ລາຍໄດ້
+                    </Heading>
+                    <Text
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontWeight="medium"
+                      fontSize={fontSize}
+                    >
                       ເງຶນເດືອນພື້ນຖານ:{" "}
                       <Badge
                         colorScheme="blue"
                         fontSize="0.9em"
                         borderRadius="full"
-                        px={2}
-                        py={0.5}
+                        px={3}
+                        py={1}
                       >
                         {incomeItems.basicSalary.toLocaleString()} ກີບ
                       </Badge>
                     </Text>
-                    <Text fontFamily="Noto Sans Lao, serif" fontWeight="medium">
-                      ເງິນເດືອນຫຼັງບວກລົບOT:{" "}
+
+                    <Text
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontWeight="medium"
+                      fontSize={fontSize}
+                    >
+                      ຫຼັງບວກລົບ OT:{" "}
                       <Badge
                         colorScheme="green"
                         fontSize="0.9em"
                         borderRadius="full"
-                        px={2}
-                        py={0.5}
+                        px={3}
+                        py={1}
                       >
                         {incomeItems.salaryfirst.toLocaleString()} ກີບ
                       </Badge>
                     </Text>
-                    <Text fontFamily="Noto Sans Lao, serif" fontWeight="medium">
-                      ເງິນສິດທິພິເສດປະໂຫຍດ:{" "}
-                      <Badge
-                        colorScheme="green"
-                        fontSize="0.9em"
-                        borderRadius="full"
-                        px={2}
-                        py={0.5}
-                      >
-                        {/* {incomeItems?.benitfits?.map((i,index)=>(
-                          <Text>{i?.amount}</Text>
-                        ))} ກີບ */}
-                      </Badge>
+
+                    <Text
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontWeight="medium"
+                      fontSize={fontSize}
+                    >
+                      ເງິນສິດທິພິເສດ:
                     </Text>
-                    <Text fontFamily="Noto Sans Lao, serif" fontWeight="medium">
-                      ເງິນເດືອນຫຼັງບວກ:{" "}
-                      <Badge
-                        colorScheme="green"
-                        fontSize="0.9em"
-                        borderRadius="full"
-                        px={2}
-                        py={0.5}
-                      >
-                        {incomeItems.salaryfirst.toLocaleString()} ກີບ
-                      </Badge>
+                    {incomeItems?.benitfits?.length > 0 ? (
+                      incomeItems.benitfits.map((i, index) => (
+                        <Box
+                          key={index}
+                          p={3}
+                          borderWidth="1px"
+                          borderRadius="lg"
+                          bg={inputBg}
+                          mb={2}
+                        >
+                          <Flex align="center" justify="space-between">
+                            <Box>
+                              <Text fontSize="sm" fontWeight="medium">
+                                {i.name}{" "}
+                                <Badge
+                                  colorScheme="purple"
+                                  ml={2}
+                                  borderRadius="full"
+                                >
+                                  {i.type}
+                                </Badge>
+                              </Text>
+                            </Box>
+                            <Text
+                              fontSize="sm"
+                              fontWeight="bold"
+                              color="green.600"
+                            >
+                              {i.amount.toLocaleString()} ກີບ
+                            </Text>
+                          </Flex>
+                        </Box>
+                      ))
+                    ) : (
+                      <Text color="gray.500" fontSize="sm" pl={4}>
+                        ບໍ່ມີສິດທິພິເສດ
+                      </Text>
+                    )}
+
+                    <Text fontWeight="bold">
+                      ລວມສິດທິ: {NetBennifits.toLocaleString()} ກີບ
                     </Text>
+
                     {matchedRange && (
-                      <Text fontFamily="Noto Sans Lao, serif">
-                        ຂັ້ນອາກອນຕ້ອງຫັກຢູ່ທີ່:{" "}
+                      <Text
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        fontSize={fontSize}
+                      >
+                        ຂັ້ນອາກອນ:{" "}
                         <Badge
                           colorScheme="purple"
                           fontSize="0.9em"
                           borderRadius="full"
-                          px={2}
-                          py={0.5}
+                          px={3}
+                          py={1}
                         >
-                          {matchedRange.minAmount.toLocaleString()}-
+                          {matchedRange.minAmount.toLocaleString()} -{" "}
                           {matchedRange.maxAmount.toLocaleString()}
                         </Badge>
                       </Text>
                     )}
                   </VStack>
 
-                  {/* Social Security Info */}
+                  {/* รายการຫັກ */}
                   <VStack align="start" spacing={3}>
-                    <Text fontWeight="medium" fontFamily="Noto Sans Lao, serif">
-                      ປະກັຍສັງຄົມ (Social Security):
-                    </Text>
-                    <Badge
-                      colorScheme="red"
-                      fontSize="0.9em"
-                      borderRadius="full"
-                      px={2}
-                      py={0.5}
+                    <Heading
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize="md"
+                      color={headerColor}
                     >
-                      -{socialSecurityMoney.toLocaleString()} ກີບ
-                    </Badge>
-                    {getsalary[0]?.socialSecurity?.length > 0 ? (
-                      getsalary[0].socialSecurity.map((item, index) => (
-                        <Text key={index}>
-                          <Badge
-                            colorScheme="teal"
-                            borderRadius="full"
-                            px={2}
-                            py={0.5}
-                          >
-                            {item.rate}%
-                          </Badge>{" "}
-                          - {item.type}
-                        </Text>
-                      ))
-                    ) : (
-                      <Text color="gray.500">
-                        No social security data available
+                      ລາຍຈ່າຍຫັກ
+                    </Heading>
+                    <HStack>
+                      <Text
+                        fontWeight="medium"
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        fontSize={fontSize}
+                      >
+                        ປະກັນສັງຄົມ:
                       </Text>
-                    )}
+                      {getsalary[0]?.socialSecurity?.length > 0 ? (
+                        getsalary[0].socialSecurity.map((item, index) => (
+                          <Text key={index} fontSize="sm">
+                            ({item?.type}): {item?.rate.toLocaleString()}%
+                          </Text>
+                        ))
+                      ) : (
+                        <Text color="gray.500" fontSize="sm">
+                          ບໍ່ມີຂໍ້ມູນ
+                        </Text>
+                      )}
+                    </HStack>
+                    <Text fontWeight="bold">
+                      ລວມຫັກ: {socialSecurityMoney.toLocaleString()} ກີບ
+                    </Text>
+                    <Card
+                      mb={cardSpacing}
+                      variant="outline"
+                      borderColor={borderColor}
+                      boxShadow="md"
+                      borderRadius="2xl"
+                    >
+                      <CardHeader pb={2} borderTopRadius="2xl">
+                        <Heading
+                          fontFamily="Noto Sans Lao, sans-serif"
+                          size={{ base: "sm", md: "md" }}
+                          color={headerColor}
+                          textAlign="left"
+                        >
+                          ຂໍ້ມູນເວລາຄ່າແຮງ
+                        </Heading>
+                      </CardHeader>
+                      <CardBody py={4}>
+                        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                          {/* Time Late */}
+                          <Box
+                            p={4}
+                            borderWidth="1px"
+                            borderRadius="lg"
+                            bg={inputBg}
+                          >
+                            <Text
+                              fontFamily="Noto Sans Lao, sans-serif"
+                              fontWeight="medium"
+                              mb={2}
+                              fontSize={fontSize}
+                            >
+                              ສາຍ (Late)
+                            </Text>
+                            <HStack spacing={3}>
+                              <Badge
+                                colorScheme="red"
+                                borderRadius="full"
+                                px={3}
+                                py={1}
+                              >
+                                ຊົ່ວໂມງ: -{incomeItems.calculateTimeLateHour}
+                              </Badge>
+                              <Badge
+                                colorScheme="red"
+                                borderRadius="full"
+                                px={3}
+                                py={1}
+                              >
+                                ນາທີ: -{incomeItems.calculateTimeLateMinute}
+                              </Badge>
+                            </HStack>
+                          </Box>
+
+                          {/* OT */}
+                          <Box
+                            p={4}
+                            borderWidth="1px"
+                            borderRadius="lg"
+                            bg={inputBg}
+                          >
+                            <Text
+                              fontFamily="Noto Sans Lao, sans-serif"
+                              fontWeight="medium"
+                              mb={2}
+                              fontSize={fontSize}
+                            >
+                              ຄ່າ OT (ເວລາເຮັດວຽກເພີ່ມ)
+                            </Text>
+                            <HStack spacing={3}>
+                              <Badge
+                                colorScheme="green"
+                                borderRadius="full"
+                                px={3}
+                                py={1}
+                              >
+                                ຊົ່ວໂມງ: +{incomeItems.calculateTimeOThour}
+                              </Badge>
+                              <Badge
+                                colorScheme="green"
+                                borderRadius="full"
+                                px={3}
+                                py={1}
+                              >
+                                ນາທີ: +{incomeItems.calculateTimeOTminute}
+                              </Badge>
+                            </HStack>
+                          </Box>
+                        </SimpleGrid>
+                      </CardBody>
+                    </Card>
                   </VStack>
                 </Grid>
-                <Divider my={4} />
+
+                <Divider my={4} borderWidth="1.5px" borderColor={headerColor} />
+
                 <FormControl>
                   <FormLabel
                     fontWeight="medium"
-                    fontFamily="Noto Sans Lao, serif"
+                    fontFamily="Noto Sans Lao, sans-serif"
+                    fontSize={fontSize}
                   >
-                    ເລືອກວັນທີ່ເດືອນປີເບີກຈ່າຍປະຈຳເດືອນ
+                    ເລືອກວັນທີ່ເບີກຈ່າຍ
                   </FormLabel>
                   <Input
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     type="date"
                     bg={inputBg}
-                    borderRadius="md"
-                    height="42px"
+                    borderRadius="lg"
+                    height={{ base: "36px", md: "42px" }}
+                    fontSize={fontSize}
+                    _focus={{
+                      borderColor: "blue.400",
+                      boxShadow: "0 0 0 1px blue.400",
+                    }}
                   />
                 </FormControl>
               </CardBody>
@@ -593,30 +800,34 @@ console.log(incomeItems)
             {/* Income & Expense Items */}
             <Grid
               templateColumns={columnTemplate}
-              gap={cardSpacing}
+              gap={{ base: 2, md: 4 }}
               mb={cardSpacing}
             >
               {/* Income Items */}
               <Card
                 variant="outline"
                 borderColor={borderColor}
-                boxShadow="sm"
-                h="100%"
+                boxShadow="md"
+                borderRadius="2xl"
+                minH="200px"
               >
                 {block ? (
-                  <Alert status="warning" mt={4} borderRadius="md">
+                  <Alert status="warning" mt={2} borderRadius="lg" py={2}>
                     <AlertIcon />
-                    <Text fontFamily="Noto Sans Lao, serif">
+                    <Text
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
                       ຂໍອະໄພໄດ້ຄິດໄລ່ເງິນເດືອນຂອງເດືອນນີ້ແລ້ວ
                     </Text>
                   </Alert>
                 ) : (
-                  <CardHeader pb={2} borderTopRadius="md">
+                  <CardHeader pb={1} borderTopRadius="2xl">
                     <Flex justify="space-between" align="center">
                       <Heading
-                        fontFamily="Noto Sans Lao, serif"
-                        size="sm"
-                        color="green.600"
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        size={{ base: "sm", md: "md" }}
+                        color="green.400"
                       >
                         ລາຍການລາຍໄດ້
                       </Heading>
@@ -624,19 +835,21 @@ console.log(incomeItems)
                         <IconButton
                           icon={<AddIcon />}
                           colorScheme="green"
-                          variant="ghost"
-                          size="sm"
+                          variant="solid"
+                          size="md"
+                          borderRadius="full"
                           onClick={() => {
                             setFormData({ ...formData, type: "income" });
                             onOpen();
                           }}
                           aria-label="Add income"
+                          touchAction="manipulation"
                         />
                       </Tooltip>
                     </Flex>
                   </CardHeader>
                 )}
-                <CardBody>
+                <CardBody py={4}>
                   {dataIncome.length > 0 ? (
                     <VStack align="start" spacing={2} w="full">
                       {dataIncome.map((item, index) => (
@@ -645,62 +858,76 @@ console.log(incomeItems)
                           justify="space-between"
                           w="full"
                           p={2}
-                          borderRadius="md"
+                          borderRadius="lg"
                         >
-                          <Text fontFamily="Noto Sans Lao, serif">
+                          <Text
+                            fontFamily="Noto Sans Lao, sans-serif"
+                            fontSize={fontSize}
+                          >
                             {item.itemName}
                           </Text>
                           <Flex align="center">
-                            <Text fontWeight="medium" color="green.500" mr={2}>
+                            <Text fontWeight="medium" color="green.400" mr={2}>
                               +{item.amount.toLocaleString()}
                             </Text>
                             <IconButton
                               onClick={() => deleteIncome(index)}
                               icon={<DeleteIcon />}
-                              size="xs"
+                              size="md"
                               colorScheme="red"
                               variant="ghost"
-                              aria-label="Delete item"
+                              aria-label="Delete income item"
+                              touchAction="manipulation"
                             />
                           </Flex>
                         </Flex>
                       ))}
-                      <Divider my={2} />
+                      <Divider
+                        my={2}
+                        borderWidth="1.5px"
+                        borderColor={headerColor}
+                      />
                       <Flex justify="space-between" w="full" p={2}>
                         <Text
                           fontWeight="bold"
-                          fontFamily="Noto Sans Lao, serif"
+                          fontFamily="Noto Sans Lao, sans-serif"
+                          fontSize={fontSize}
                         >
                           ລວມລາຍການໄດ້:
                         </Text>
-                        <Text fontWeight="bold" color="green.500">
+                        <Text fontWeight="bold" color="green.400">
                           {NetIncome.toLocaleString()} ກີບ
                         </Text>
                       </Flex>
                     </VStack>
                   ) : block ? (
-                    <Alert status="warning" mt={4} borderRadius="md">
+                    <Alert status="warning" mt={2} borderRadius="lg" py={2}>
                       <AlertIcon />
-                      <Text fontFamily="Noto Sans Lao, serif">
+                      <Text
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        fontSize={fontSize}
+                      >
                         ຂໍອະໄພໄດ້ຄິດໄລ່ເງິນເດືອນຂອງເດືອນນີ້ແລ້ວ
                       </Text>
                     </Alert>
                   ) : (
-                    <Center py={6} flexDirection="column">
-                      <Text color="gray.500" mb={2}>
+                    <Center py={4} flexDirection="column">
+                      <Text color="gray.500" mb={2} fontSize={fontSize}>
                         No income items added
                       </Text>
                       <Button
                         leftIcon={<AddIcon />}
                         colorScheme="green"
-                        variant="outline"
-                        size="sm"
+                        variant="solid"
+                        size={buttonSize}
+                        borderRadius="full"
                         onClick={() => {
                           setFormData({ ...formData, type: "income" });
                           onOpen();
                         }}
+                        touchAction="manipulation"
                       >
-                        Add Income Item
+                        Add Income
                       </Button>
                     </Center>
                   )}
@@ -711,23 +938,27 @@ console.log(incomeItems)
               <Card
                 variant="outline"
                 borderColor={borderColor}
-                boxShadow="sm"
-                h="100%"
+                boxShadow="md"
+                borderRadius="2xl"
+                minH="200px"
               >
                 {block ? (
-                  <Alert status="warning" mt={4} borderRadius="md">
+                  <Alert status="warning" mt={2} borderRadius="lg" py={2}>
                     <AlertIcon />
-                    <Text fontFamily="Noto Sans Lao, serif">
+                    <Text
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
                       ຂໍອະໄພໄດ້ຄິດໄລ່ເງິນເດືອນຂອງເດືອນນີ້ແລ້ວ
                     </Text>
                   </Alert>
                 ) : (
-                  <CardHeader pb={2} borderTopRadius="md">
+                  <CardHeader pb={1} borderTopRadius="2xl">
                     <Flex justify="space-between" align="center">
                       <Heading
-                        fontFamily="Noto Sans Lao, serif"
-                        size="sm"
-                        color="red.600"
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        size={{ base: "sm", md: "md" }}
+                        color="red.400"
                       >
                         ລາຍການຫັກ
                       </Heading>
@@ -735,19 +966,21 @@ console.log(incomeItems)
                         <IconButton
                           icon={<AddIcon />}
                           colorScheme="red"
-                          variant="ghost"
-                          size="sm"
+                          variant="solid"
+                          size="md"
+                          borderRadius="full"
                           onClick={() => {
                             setFormData({ ...formData, type: "deduction" });
                             onOpen();
                           }}
                           aria-label="Add expense"
+                          touchAction="manipulation"
                         />
                       </Tooltip>
                     </Flex>
                   </CardHeader>
                 )}
-                <CardBody>
+                <CardBody py={4}>
                   {dataExpense.length > 0 ? (
                     <VStack align="start" spacing={2} w="full">
                       {dataExpense.map((item, index) => (
@@ -756,62 +989,76 @@ console.log(incomeItems)
                           justify="space-between"
                           w="full"
                           p={2}
-                          borderRadius="md"
+                          borderRadius="lg"
                         >
-                          <Text fontFamily="Noto Sans Lao, serif">
+                          <Text
+                            fontFamily="Noto Sans Lao, sans-serif"
+                            fontSize={fontSize}
+                          >
                             {item.itemName}
                           </Text>
                           <Flex align="center">
-                            <Text fontWeight="medium" color="red.500" mr={2}>
+                            <Text fontWeight="medium" color="red.400" mr={2}>
                               -{item.amount.toLocaleString()}
                             </Text>
                             <IconButton
                               onClick={() => deleteExpense(index)}
                               icon={<DeleteIcon />}
-                              size="xs"
+                              size="md"
                               colorScheme="red"
                               variant="ghost"
-                              aria-label="Delete item"
+                              aria-label="Delete expense item"
+                              touchAction="manipulation"
                             />
                           </Flex>
                         </Flex>
                       ))}
-                      <Divider my={2} />
+                      <Divider
+                        my={2}
+                        borderWidth="1.5px"
+                        borderColor={headerColor}
+                      />
                       <Flex justify="space-between" w="full" p={2}>
                         <Text
                           fontWeight="bold"
-                          fontFamily="Noto Sans Lao, serif"
+                          fontFamily="Noto Sans Lao, sans-serif"
+                          fontSize={fontSize}
                         >
                           ລວມລາຍການຫັກ:
                         </Text>
-                        <Text fontWeight="bold" color="red.500">
+                        <Text fontWeight="bold" color="red.400">
                           {NetExpense.toLocaleString()} ກີບ
                         </Text>
                       </Flex>
                     </VStack>
                   ) : block ? (
-                    <Alert status="warning" mt={4} borderRadius="md">
+                    <Alert status="warning" mt={2} borderRadius="lg" py={2}>
                       <AlertIcon />
-                      <Text fontFamily="Noto Sans Lao, serif">
+                      <Text
+                        fontFamily="Noto Sans Lao, sans-serif"
+                        fontSize={fontSize}
+                      >
                         ຂໍອະໄພໄດ້ຄິດໄລ່ເງິນເດືອນຂອງເດືອນນີ້ແລ້ວ
                       </Text>
                     </Alert>
                   ) : (
-                    <Center py={6} flexDirection="column">
-                      <Text color="gray.500" mb={2}>
+                    <Center py={4} flexDirection="column">
+                      <Text color="gray.500" mb={2} fontSize={fontSize}>
                         No expense items added
                       </Text>
                       <Button
                         leftIcon={<AddIcon />}
                         colorScheme="red"
-                        variant="outline"
-                        size="sm"
+                        variant="solid"
+                        size={buttonSize}
+                        borderRadius="full"
                         onClick={() => {
                           setFormData({ ...formData, type: "deduction" });
                           onOpen();
                         }}
+                        touchAction="manipulation"
                       >
-                        Add Expense Item
+                        Add Expense
                       </Button>
                     </Center>
                   )}
@@ -820,62 +1067,148 @@ console.log(incomeItems)
             </Grid>
 
             {/* Summary */}
-            <Card variant="filled" bg={summaryCardBg} mb={cardSpacing}>
+            {/* Payment Date Warning */}
+            {!date && (
+              <Alert status="warning" mt={2} borderRadius="lg" py={2}>
+                <AlertIcon />
+                <Text
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  fontSize={fontSize}
+                >
+                  ກະລຸນາເລືອກວັນທີ່ເບີກຈ່າຍກ່ອນບັນທຶກ
+                </Text>
+              </Alert>
+            )}
+            <Card
+              variant="filled"
+              bgGradient="linear(to-b, blue.100, blue.200)"
+              mb={cardSpacing}
+              borderRadius="2xl"
+            >
               <CardHeader
                 pb={2}
-                borderBottom="1px solid"
+                borderBottom="1.5px solid"
                 borderColor={borderColor}
               >
-                <Heading size="md" fontFamily="Noto Sans Lao, serif">
+                <Heading
+                  size={{ base: "sm", md: "md" }}
+                  fontFamily="Noto Sans Lao, sans-serif"
+                >
                   ສະຫຼຸບເງິນເດືອນ
                 </Heading>
               </CardHeader>
-              <CardBody>
-                <Stack spacing={4}>
+              <CardBody py={4}>
+                <Stack spacing={3}>
                   <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium" fontFamily="Noto Sans Lao, serif">
+                    <Text
+                      fontWeight="medium"
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
+                      ເງິນເດືອນພື້ນຖານ:
+                    </Text>
+                    <Badge
+                      colorScheme="blue"
+                      fontSize={{ base: "sm", md: "md" }}
+                      p={2}
+                      borderRadius="lg"
+                      variant="subtle"
+                    >
+                      {incomeItems.basicSalary.toLocaleString()} ກີບ
+                    </Badge>
+                  </Flex>
+
+                  <Flex justify="space-between" align="center">
+                    <Text
+                      fontWeight="medium"
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
+                      ເງິນເດືອນຫຼັງບວກຄ່າລ່ວງເວລາ:
+                    </Text>
+                    <Badge
+                      colorScheme="blue"
+                      fontSize={{ base: "sm", md: "md" }}
+                      p={2}
+                      borderRadius="lg"
+                      variant="subtle"
+                    >
+                      {incomeItems.salaryfirst.toLocaleString()} ກີບ
+                    </Badge>
+                  </Flex>
+
+                  <Flex justify="space-between" align="center">
+                    <Text
+                      fontWeight="medium"
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
+                      ເງິນຄ່າສິດທິປະໂຫຍດ:
+                    </Text>
+                    <Badge
+                      colorScheme="blue"
+                      fontSize={{ base: "sm", md: "md" }}
+                      p={2}
+                      borderRadius="lg"
+                      variant="subtle"
+                    >
+                      {NetBennifits.toLocaleString()} ກີບ
+                    </Badge>
+                  </Flex>
+                  <Flex justify="space-between" align="center">
+                    <Text
+                      fontWeight="medium"
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
                       ເງິນເດືອນກ່ອນຫັກອາກອນ:
                     </Text>
                     <Badge
                       colorScheme="blue"
-                      fontSize="md"
+                      fontSize={{ base: "sm", md: "md" }}
                       p={2}
-                      borderRadius="md"
+                      borderRadius="lg"
+                      variant="subtle"
                     >
                       {Net.toLocaleString()} ກີບ
                     </Badge>
                   </Flex>
 
                   <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium" fontFamily="Noto Sans Lao, serif">
+                    <Text
+                      fontWeight="medium"
+                      fontFamily="Noto Sans Lao, sans-serif"
+                      fontSize={fontSize}
+                    >
                       ອາກອນລາຍໄດ້ທີ່ຕ້ອງຈ່າຍ:
                     </Text>
                     <Badge
                       colorScheme="red"
-                      fontSize="md"
+                      fontSize={{ base: "sm", md: "md" }}
                       p={2}
-                      borderRadius="md"
+                      borderRadius="lg"
+                      variant="subtle"
                     >
                       {taxpay.toLocaleString()} ກີບ
                     </Badge>
                   </Flex>
 
-                  <Divider />
+                  <Divider borderWidth="1.5px" borderColor={headerColor} />
 
                   <Flex
                     justify="space-between"
                     align="center"
-                    p={4}
+                    p={3}
                     borderRadius="lg"
                   >
                     <Text
                       fontWeight="bold"
-                      fontSize="lg"
-                      fontFamily="Noto Sans Lao, serif"
+                      fontSize={{ base: "md", md: "lg" }}
+                      fontFamily="Noto Sans Lao, sans-serif"
                     >
                       ເງິນເດືອນສຸດທິ:
                     </Text>
-                    <Text fontWeight="bold" fontSize="xl">
+                    <Text fontWeight="bold" fontSize={{ base: "lg", md: "xl" }}>
                       {(Net - taxpay).toLocaleString()} ກີບ
                     </Text>
                   </Flex>
@@ -885,9 +1218,12 @@ console.log(incomeItems)
 
             {/* Save Button */}
             {block ? (
-              <Alert status="warning" mt={4} borderRadius="md">
+              <Alert status="warning" mt={2} borderRadius="lg" py={2}>
                 <AlertIcon />
-                <Text fontFamily="Noto Sans Lao, serif">
+                <Text
+                  fontFamily="Noto Sans Lao, sans-serif"
+                  fontSize={fontSize}
+                >
                   ຂໍອະໄພໄດ້ຄິດໄລ່ເງິນເດືອນຂອງເດືອນນີ້ແລ້ວ
                 </Text>
               </Alert>
@@ -895,47 +1231,50 @@ console.log(incomeItems)
               <Button
                 onClick={handleSaveSalary}
                 colorScheme="blue"
-                isDisabled={block}
+                bgGradient="linear(to-r, blue.500, blue.600)"
                 size={buttonSize}
                 w="full"
-                h="48px"
-                fontFamily="Noto Sans Lao, serif"
+                h={{ base: "40px", md: "48px" }}
+                fontFamily="Noto Sans Lao, sans-serif"
+                fontWeight="semibold"
+                textTransform="uppercase"
                 boxShadow="md"
                 leftIcon={<CheckCircleIcon />}
-                _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+                _hover={{ transform: "scale(1.05)", boxShadow: "lg" }}
                 transition="all 0.2s"
+                isDisabled={block}
+                touchAction="manipulation"
+                _focus={{ outline: "2px solid", outlineColor: "blue.400" }}
               >
-                ບັນທຶກເງິນເດືອນພະນັກງານ ໝາຍເລກ {selectedEmployee}
+                ບັນທຶກເງິນເດືອນ
               </Button>
-            )}
-
-            {/* Show warning if payment date is not set */}
-            {!date && (
-              <Alert status="warning" mt={4} borderRadius="md">
-                <AlertIcon />
-                <Text fontFamily="Noto Sans Lao, serif">
-                  ກະລຸນາເລືອກວັນທີ່ເບີກຈ່າຍກ່ອນບັນທຶກ
-                </Text>
-              </Alert>
             )}
           </MotionBox>
         ) : (
           selectedEmployee && (
             <Alert
               status="info"
-              borderRadius="md"
+              borderRadius="lg"
               variant="left-accent"
               flexDirection="column"
               alignItems="center"
               justifyContent="center"
               textAlign="center"
-              py={6}
+              py={4}
             >
               <AlertIcon boxSize="30px" mr={0} mb={3} />
-              <Text fontFamily="Noto Sans Lao, serif" fontSize="lg">
+              <Text
+                fontFamily="Noto Sans Lao, sans-serif"
+                fontSize={{ base: "md", md: "lg" }}
+              >
                 ບໍ່ພົບຂໍ້ມູນເງິນເດືອນ ສຳລັບພະນັກງານລະຫັດ {selectedEmployee}
               </Text>
-              <Text color="gray.500" mt={2} fontFamily="Noto Sans Lao, serif">
+              <Text
+                color="gray.500"
+                mt={2}
+                fontFamily="Noto Sans Lao, sans-serif"
+                fontSize={fontSize}
+              >
                 ກະລຸນາເລືອກເດືອນ ແລະ ປີ ທີ່ຕ້ອງການຄິດໄລ່
               </Text>
             </Alert>
@@ -943,27 +1282,38 @@ console.log(incomeItems)
         )}
 
         {/* Add Item Modal */}
-        <Modal isOpen={isOpen} onClose={onClose} size="md" isCentered>
+        <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+          size={{ base: "xs", sm: "sm", md: "md" }}
+          isCentered
+        >
           <ModalOverlay backdropFilter="blur(2px)" />
-          <ModalContent borderRadius="lg">
+          <ModalContent borderRadius="lg" maxH="80vh" overflowY="auto">
             <ModalHeader
-              fontFamily="Noto Sans Lao, serif"
-              bg={formData.type === "income" ? "green.50" : "red.50"}
+              fontFamily="Noto Sans Lao, sans-serif"
+              bgGradient={
+                formData.type === "income"
+                  ? "linear(to-b, green.50, green.100)"
+                  : "linear(to-b, red.50, red.100)"
+              }
               borderTopRadius="lg"
-              borderBottom="1px solid"
+              borderBottom="1.5px solid"
               borderColor={borderColor}
             >
               {formData.type === "income"
                 ? "ເພີ່ມລາຍການລາຍໄດ້"
                 : "ເພີ່ມລາຍການລາຍຫັກ"}
             </ModalHeader>
-            <ModalCloseButton />
-            <ModalBody pt={6}>
-              <VStack spacing={5}>
+            <ModalCloseButton size="lg" />
+            <ModalBody pt={4}>
+              <VStack spacing={3}>
                 <FormControl isInvalid={formErrors.itemName}>
                   <FormLabel
-                    fontFamily="Noto Sans Lao, serif"
+                    fontFamily="Noto Sans Lao, sans-serif"
                     fontWeight="medium"
+                    fontSize={fontSize}
+                    mb={1}
                   >
                     ຊື່ລາຍການ
                   </FormLabel>
@@ -974,16 +1324,23 @@ console.log(incomeItems)
                     onChange={handleFormChange}
                     placeholder="ຊື່ລາຍການ"
                     bg={inputBg}
-                    borderRadius="md"
-                    height="42px"
+                    borderRadius="lg"
+                    height={{ base: "36px", md: "42px" }}
+                    fontSize={fontSize}
+                    _focus={{
+                      borderColor: "blue.400",
+                      boxShadow: "0 0 0 1px blue.400",
+                    }}
                   />
                   <FormErrorMessage>{formErrors.itemName}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isInvalid={formErrors.amount}>
                   <FormLabel
-                    fontFamily="Noto Sans Lao, serif"
+                    fontFamily="Noto Sans Lao, sans-serif"
                     fontWeight="medium"
+                    fontSize={fontSize}
+                    mb={1}
                   >
                     ຈຳນວນເງິນ
                   </FormLabel>
@@ -996,16 +1353,23 @@ console.log(incomeItems)
                     step="0.01"
                     min="0"
                     bg={inputBg}
-                    borderRadius="md"
-                    height="42px"
+                    borderRadius="lg"
+                    height={{ base: "36px", md: "42px" }}
+                    fontSize={fontSize}
+                    _focus={{
+                      borderColor: "blue.400",
+                      boxShadow: "0 0 0 1px blue.400",
+                    }}
                   />
                   <FormErrorMessage>{formErrors.amount}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl>
                   <FormLabel
-                    fontFamily="Noto Sans Lao, serif"
+                    fontFamily="Noto Sans Lao, sans-serif"
                     fontWeight="medium"
+                    fontSize={fontSize}
+                    mb={1}
                   >
                     ປະເພດ
                   </FormLabel>
@@ -1016,12 +1380,22 @@ console.log(incomeItems)
                       setFormData({ ...formData, type: value })
                     }
                   >
-                    <Stack direction={stackDirection}>
-                      <Radio value="income" colorScheme="green" size="lg">
-                        <Text fontFamily="Noto Sans Lao, serif">ລາຍໄດ້</Text>
+                    <Stack direction={stackDirection} spacing={3}>
+                      <Radio value="income" colorScheme="green" size="md">
+                        <Text
+                          fontFamily="Noto Sans Lao, sans-serif"
+                          fontSize={fontSize}
+                        >
+                          ລາຍໄດ້
+                        </Text>
                       </Radio>
-                      <Radio value="deduction" colorScheme="red" size="lg">
-                        <Text fontFamily="Noto Sans Lao, serif">ລາຍຫັກ</Text>
+                      <Radio value="deduction" colorScheme="red" size="md">
+                        <Text
+                          fontFamily="Noto Sans Lao, sans-serif"
+                          fontSize={fontSize}
+                        >
+                          ລາຍຫັກ
+                        </Text>
                       </Radio>
                     </Stack>
                   </RadioGroup>
@@ -1030,22 +1404,35 @@ console.log(incomeItems)
             </ModalBody>
 
             <ModalFooter
-              borderTop="1px solid"
+              borderTop="1.5px solid"
               borderColor={borderColor}
-              gap={3}
+              gap={2}
             >
               <Button
                 variant="outline"
                 onClick={onClose}
-                fontFamily="Noto Sans Lao, serif"
+                fontFamily="Noto Sans Lao, sans-serif"
+                size={buttonSize}
+                w="full"
+                touchAction="manipulation"
+                _focus={{ outline: "2px solid", outlineColor: "blue.400" }}
               >
                 ຍົກເລີກ
               </Button>
 
               <Button
                 colorScheme={formData.type === "income" ? "green" : "red"}
+                bgGradient={
+                  formData.type === "income"
+                    ? "linear(to-r, green.400, green.500)"
+                    : "linear(to-r, red.400, red.500)"
+                }
                 onClick={handleSubmit}
-                fontFamily="Noto Sans Lao, serif"
+                fontFamily="Noto Sans Lao, sans-serif"
+                size={buttonSize}
+                w="full"
+                touchAction="manipulation"
+                _focus={{ outline: "2px solid", outlineColor: "blue.400" }}
               >
                 ບັນທຶກລາຍການ
               </Button>
